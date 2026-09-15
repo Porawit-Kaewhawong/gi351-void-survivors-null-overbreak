@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 43874607990364580}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: East
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 4023935736880503207}
   - component: {fileID: 3590986934467530993}
   - component: {fileID: 5079870398200964223}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -152,7 +152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1921186204261424881}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
@@ -186,7 +186,7 @@ GameObject:
   - component: {fileID: 998728556280464397}
   - component: {fileID: 7431388868285873534}
   - component: {fileID: 2151154400106037917}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -295,7 +295,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1403898293508332659}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Parkour Path
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -335,7 +335,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2363886148813088710}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
@@ -369,7 +369,7 @@ GameObject:
   - component: {fileID: 4323345772065971215}
   - component: {fileID: 6427317082174347627}
   - component: {fileID: 8256589934231497525}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -481,7 +481,7 @@ GameObject:
   - component: {fileID: 3055840413334291376}
   - component: {fileID: 5067639361138341897}
   - component: {fileID: 3225627622034498128}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -590,7 +590,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6692572392674663817}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
@@ -621,7 +621,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 150165515609966152}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: West
   m_TagString: Untagged
   m_Icon: {fileID: 0}

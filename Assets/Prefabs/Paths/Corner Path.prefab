@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4418185919868131082}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: East
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 3994671083246180557}
   - component: {fileID: 1929846053636470524}
   - component: {fileID: 1906841241789168178}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -155,7 +155,7 @@ GameObject:
   - component: {fileID: 7539831442982268753}
   - component: {fileID: 423960689049333755}
   - component: {fileID: 7150185482756114689}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264,7 +264,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4679648176876275934}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
@@ -295,7 +295,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6405749574222322557}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: North
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -326,7 +326,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3618813419027759892}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Corner Path
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -364,7 +364,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1474161623256951727}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
@@ -395,7 +395,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6163328928039113060}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ItemSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
