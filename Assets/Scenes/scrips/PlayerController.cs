@@ -2,119 +2,153 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float rotationSpeed = 10f;
+    [Header("Movement")]
+    public float moveSpeed = 5f;
 
-    [Header("Camera Settings")]
-    [SerializeField] private Transform cameraTransform;
-    [SerializeField] private float mouseSensitivity = 200f;
-    [SerializeField] private float cameraMinX = -80f;
-    [SerializeField] private float cameraMaxX = 80f;
+    [Header("Jump")]
+    public float jumpHeight = 2f;
+    public float gravity = -20f;
 
-    [Header("Physics Settings")]
-    [SerializeField] private float gravity = -20f;
+    [Header("Ground Check")]
+    public float groundCheckRadius = 0.3f;
+    public float groundCheckOffset = 0.05f;
+    public LayerMask groundLayer;
+
+    [Header("Camera")]
+    public Transform cameraTransform;
 
     private CharacterController characterController;
-
-    private float cameraRotationX;
-    private float cameraRotationY;
-
     private Vector3 velocity;
 
-
-    private void Awake()
-    {
-        //Get the CharacterController component attached to the player.
-        characterController = GetComponent<CharacterController>();
-    }
+    private bool isGrounded;
+    private float coyoteTime = 0.15f;
+    private float coyoteTimer;
 
     private void Start()
     {
-        //Lock the cursor to the center of the screen for camera control.
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Get the CharacterController component.
+        characterController = GetComponent<CharacterController>();
     }
-
 
     private void Update()
     {
+        CheckGround();
         HandleMovement();
-        HandleCameraRotation();
-        HandleGravity();
+        HandleJump();
+        ApplyGravity();
     }
 
-
-    private void HandleMovement()
+    private void CheckGround()
     {
-        //Get keyboard input from the player.
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        // Get the lowest point of the CharacterController.
+        float bottom = characterController.bounds.min.y;
 
-        //Create movement direction based on the player's forward and right direction.
-        Vector3 moveDirection =
-            transform.right * horizontal +
-            transform.forward * vertical;
+        // Create a ground check position slightly above the bottom.
+        Vector3 checkPosition = new Vector3(
+            characterController.bounds.center.x,
+            bottom + groundCheckOffset,
+            characterController.bounds.center.z
+        );
 
-        //Prevent diagonal movement from being faster.
-        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
+        // Check if the player is touching the ground.
+        isGrounded = Physics.CheckSphere(
+            checkPosition,
+            groundCheckRadius,
+            groundLayer,
+            QueryTriggerInteraction.Ignore
+        );
 
-        //Move the player using CharacterController collision detection.
-        characterController.Move(moveDirection * moveSpeed * Time.deltaTime);
-
-        //Rotate the player toward the movement direction.
-        if (moveDirection != Vector3.zero)
+        // Give the player a short time to jump after leaving the ground.
+        if (isGrounded)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime
-            );
+            coyoteTimer = coyoteTime;
+        }
+        else
+        {
+            coyoteTimer -= Time.deltaTime;
         }
     }
 
-
-    private void HandleCameraRotation()
+    private void HandleMovement()
     {
-        //Get mouse movement for camera rotation.
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        // Get keyboard input from WASD or Arrow Keys.
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
-        //Rotate the player horizontally based on mouse movement.
-        cameraRotationY += mouseX;
+        // Get camera directions.
+        Vector3 cameraForward = cameraTransform.forward;
+        Vector3 cameraRight = cameraTransform.right;
 
-        //Rotate the camera vertically and limit the rotation angle.
-        cameraRotationX -= mouseY;
-        cameraRotationX = Mathf.Clamp(
-            cameraRotationX,
-            cameraMinX,
-            cameraMaxX
+        // Keep movement on the ground.
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
+        // Calculate movement direction.
+        Vector3 moveDirection =
+            cameraForward * vertical +
+            cameraRight * horizontal;
+
+        // Prevent diagonal movement from being faster.
+        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
+
+        // Move the player.
+        characterController.Move(
+            moveDirection * moveSpeed * Time.deltaTime
         );
-
-        //Apply vertical rotation to the camera.
-        cameraTransform.localRotation =
-            Quaternion.Euler(cameraRotationX, 0f, 0f);
-
-        //Apply horizontal rotation to the player.
-        transform.rotation =
-            Quaternion.Euler(0f, cameraRotationY, 0f);
     }
 
-
-    private void HandleGravity()
+    private void HandleJump()
     {
-        //Keep the player grounded and apply gravity when in the air.
-        if (characterController.isGrounded && velocity.y < 0)
+        // Keep the player attached to the ground.
+        if (isGrounded && velocity.y < 0f)
         {
             velocity.y = -2f;
         }
 
-        //Apply gravity over time.
+        // Jump when Space is pressed.
+        if (Input.GetKeyDown(KeyCode.Space) && coyoteTimer > 0f)
+        {
+            velocity.y = Mathf.Sqrt(
+                jumpHeight * -2f * gravity
+            );
+
+            // Prevent another jump immediately.
+            coyoteTimer = 0f;
+        }
+    }
+
+    private void ApplyGravity()
+    {
+        // Apply gravity every frame.
         velocity.y += gravity * Time.deltaTime;
 
-        //Move the player vertically.
-        characterController.Move(velocity * Time.deltaTime);
+        // Move the player vertically.
+        characterController.Move(
+            velocity * Time.deltaTime
+        );
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // Show the ground check area in the Scene view.
+        if (characterController == null)
+            return;
+
+        float bottom = characterController.bounds.min.y;
+
+        Vector3 checkPosition = new Vector3(
+            characterController.bounds.center.x,
+            bottom + groundCheckOffset,
+            characterController.bounds.center.z
+        );
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(
+            checkPosition,
+            groundCheckRadius
+        );
     }
 }
