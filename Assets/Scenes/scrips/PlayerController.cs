@@ -146,6 +146,7 @@ public class PlayerController : MonoBehaviour
         );
 
         Gizmos.color = Color.yellow;
+
         Gizmos.DrawWireSphere(
             checkPosition,
             groundCheckRadius
