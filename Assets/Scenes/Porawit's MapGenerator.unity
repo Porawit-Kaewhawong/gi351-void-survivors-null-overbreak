@@ -255,8 +255,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 139717404}
+  - component: {fileID: 139717406}
   - component: {fileID: 139717405}
-  - component: {fileID: 139717403}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -264,49 +264,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &139717403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 139717402}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 508cf4b6f6ea12341a4a592bd4d3ee10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
-  player: {fileID: 454154473}
-  spawnPrefab: {fileID: 1596306326308008608, guid: 3319222cb25e38542aaed27f214ac79f, type: 3}
-  chunkSize: 10
-  chunkYPosition: 0
-  mapRadius: 2
-  maxTrunkLengthRatio: 0.75
-  trunkForwardBias: 1.2
-  trunkBranchSeedChance: 0.35
-  targetVoidRatio: 0.5
-  bigVoidShare: 0.7
-  targetPathDensity: 0.55
-  crawlerBranchChance: 0.2
-  maxGenerationRetries: 10
-  allChunkPrefabs:
-  - {fileID: 6763487673237405804, guid: 503abe04257f14e4b9c6be2a0e424f2d, type: 3}
-  - {fileID: 5588381173224002104, guid: 28a86a3b1ad654f43bd1691599e89b81, type: 3}
-  - {fileID: 8449835838399874673, guid: 3ed00cf5b73312848a2d674fb67f70e6, type: 3}
-  - {fileID: 2555418048352630638, guid: 060e9017860de964fa0d00f79e8f3fd4, type: 3}
-  - {fileID: 4235895589536427427, guid: ed1d8d43285cc31439b98b88b9a486b4, type: 3}
-  - {fileID: 3938014596051956393, guid: 34a93f4d786b9e843b1c08ea2662d4e2, type: 3}
-  itemPrefabs:
-  - {fileID: 2243616081234245449, guid: b84686a12c55a394d84fa0e3347d6b49, type: 3}
-  itemSpawnPointName: ItemSpawn
-  useRandomSeed: 1
-  seedOffset: 10000
-  preventLoops: 1
-  prevent2x2Blocks: 1
-  currentCount: 0
-  requiredCount: 0
-  finishPortalPrefab: {fileID: 0}
-  activeFinishPortal: {fileID: 0}
 --- !u!4 &139717404
 Transform:
   m_ObjectHideFlags: 0
@@ -331,13 +288,81 @@ MonoBehaviour:
   m_GameObject: {fileID: 139717402}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 508cf4b6f6ea12341a4a592bd4d3ee10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NullscapeSocketGenerator
+  player: {fileID: 454154473}
+  spawnPrefab: {fileID: 1596306326308008608, guid: 3319222cb25e38542aaed27f214ac79f, type: 3}
+  chunkSize: 10
+  chunkYPosition: 0
+  mapRadius: 1
+  maxTrunkLengthRatio: 0.75
+  trunkForwardBias: 1
+  trunkBranchSeedChance: 0.35
+  targetVoidRatio: 0.5
+  bigVoidShare: 0.7
+  targetPathDensity: 0.45
+  crawlerBranchChance: 0.25
+  maxGenerationRetries: 10
+  allChunkPrefabs:
+  - {fileID: 6763487673237405804, guid: 503abe04257f14e4b9c6be2a0e424f2d, type: 3}
+  - {fileID: 5588381173224002104, guid: 28a86a3b1ad654f43bd1691599e89b81, type: 3}
+  - {fileID: 8449835838399874673, guid: 3ed00cf5b73312848a2d674fb67f70e6, type: 3}
+  - {fileID: 3938014596051956393, guid: 34a93f4d786b9e843b1c08ea2662d4e2, type: 3}
+  - {fileID: 2555418048352630638, guid: 060e9017860de964fa0d00f79e8f3fd4, type: 3}
+  - {fileID: 4235895589536427427, guid: ed1d8d43285cc31439b98b88b9a486b4, type: 3}
+  itemPrefabs:
+  - {fileID: 2243616081234245449, guid: b84686a12c55a394d84fa0e3347d6b49, type: 3}
+  itemSpawnPointName: ItemSpawn
+  useRandomSeed: 1
+  seedOffset: 10000
+  preventLoops: 1
+  prevent2x2Blocks: 1
+--- !u!114 &139717406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139717402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5039e12ab82e93843bac61b7c82de977, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   itemCounterText: {fileID: 488186643}
   displayFormat: '{0} / {1}'
-  finishPrefab: {fileID: 8217410948361807191, guid: 9c65a22a6941e2e4da35e448bf3170b6, type: 3}
+  finishPortalPrefab: {fileID: 8217410948361807191, guid: 9c65a22a6941e2e4da35e448bf3170b6, type: 3}
   finishOffsetAboveStart: {x: 0, y: 5, z: 0}
+  lobbySpawnPoint: {fileID: 2099379417}
+  lobbyEnvironmentRoot: {fileID: 420756534}
+  optionSpawnPoints:
+  - {fileID: 543770931}
+  - {fileID: 1270399133}
+  - {fileID: 1341491795}
+  startPortalSpawnPoint: {fileID: 1393080902}
+  startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
+  currentLevel: 1
+  playerBuffOptions:
+  - title: Player Buff
+    description: Desc.
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: 
+  enemySelectionOptions:
+  - title: Enemy Selection
+    description: Desc.
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: 
+  enemyBuffOptions:
+  - title: Enemy Buff
+    description: Desc.
+    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    optionID: 
+  levelRuleOptions:
+  - title: Level Rule
+    description: Desc.
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: 
 --- !u!1 &145851546
 GameObject:
   m_ObjectHideFlags: 0
@@ -850,79 +875,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 488186641}
   m_CullTransparentMesh: 1
---- !u!1 &490229259
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 490229260}
-  - component: {fileID: 490229261}
-  m_Layer: 3
-  m_Name: LobbyManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &490229260
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 490229259}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &490229261
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 490229259}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f8d5856a72f59649a673a778e32e961, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyGameManager
-  lobbySpawnPoint: {fileID: 2099379417}
-  lobbyEnvironmentRoot: {fileID: 420756534}
-  currentLevel: 1
-  optionSpawnPoints:
-  - {fileID: 543770931}
-  - {fileID: 1270399133}
-  - {fileID: 1341491795}
-  startPortalSpawnPoint: {fileID: 1393080902}
-  startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
-  playerBuffOptions:
-  - title: Speed
-    description: More speed
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: 
-  enemySelectionOptions:
-  - title: Enemy
-    description: More enemy
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
-    optionID: 
-  enemyBuffOptions:
-  - title: Enemy Buff
-    description: Harder enemy
-    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
-    optionID: 
-  levelRuleOptions:
-  - title: Rule Change
-    description: What rule?
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
-    optionID: 
 --- !u!1 &543770930
 GameObject:
   m_ObjectHideFlags: 0
@@ -1380,6 +1332,5 @@ SceneRoots:
   - {fileID: 549072134}
   - {fileID: 2126116046}
   - {fileID: 139717404}
-  - {fileID: 490229260}
-  - {fileID: 454154473}
   - {fileID: 420756535}
+  - {fileID: 454154473}

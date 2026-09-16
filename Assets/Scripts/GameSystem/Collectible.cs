@@ -1,14 +1,21 @@
 using UnityEngine;
 
-public class CollectibleItem : MonoBehaviour
+public class Collectible : MonoBehaviour
 {
     private bool isCollected = false;
+    private bool isRegistered = false;
 
-    private void Start()
+    private void Awake()
     {
-        // Register this item with the manager when spawned
-        if (GameManager.Instance != null)
+        // Register immediately during Instantiate() so MapGenerator sees the count on frame 1
+        Register();
+    }
+
+    private void Register()
+    {
+        if (!isRegistered && GameManager.Instance != null)
         {
+            isRegistered = true;
             GameManager.Instance.RegisterItem();
         }
     }
@@ -30,8 +37,7 @@ public class CollectibleItem : MonoBehaviour
 
     private void OnDestroy()
     {
-        // If the chunk despawns and destroys the item before collection, reduce total count
-        if (!isCollected && gameObject.scene.isLoaded && GameManager.Instance != null)
+        if (isRegistered && !isCollected && gameObject.scene.isLoaded && GameManager.Instance != null)
         {
             GameManager.Instance.UnregisterItem();
         }
