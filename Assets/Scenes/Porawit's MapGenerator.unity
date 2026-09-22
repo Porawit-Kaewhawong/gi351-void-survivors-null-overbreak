@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -255,8 +255,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 139717404}
+  - component: {fileID: 139717406}
   - component: {fileID: 139717405}
-  - component: {fileID: 139717403}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -264,49 +264,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &139717403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 139717402}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 508cf4b6f6ea12341a4a592bd4d3ee10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
-  player: {fileID: 454154473}
-  spawnPrefab: {fileID: 1596306326308008608, guid: 3319222cb25e38542aaed27f214ac79f, type: 3}
-  chunkSize: 10
-  chunkYPosition: 0
-  mapRadius: 2
-  maxTrunkLengthRatio: 0.75
-  trunkForwardBias: 1.2
-  trunkBranchSeedChance: 0.35
-  targetVoidRatio: 0.5
-  bigVoidShare: 0.7
-  targetPathDensity: 0.55
-  crawlerBranchChance: 0.2
-  maxGenerationRetries: 10
-  allChunkPrefabs:
-  - {fileID: 6763487673237405804, guid: 503abe04257f14e4b9c6be2a0e424f2d, type: 3}
-  - {fileID: 5588381173224002104, guid: 28a86a3b1ad654f43bd1691599e89b81, type: 3}
-  - {fileID: 8449835838399874673, guid: 3ed00cf5b73312848a2d674fb67f70e6, type: 3}
-  - {fileID: 2555418048352630638, guid: 060e9017860de964fa0d00f79e8f3fd4, type: 3}
-  - {fileID: 4235895589536427427, guid: ed1d8d43285cc31439b98b88b9a486b4, type: 3}
-  - {fileID: 3938014596051956393, guid: 34a93f4d786b9e843b1c08ea2662d4e2, type: 3}
-  itemPrefabs:
-  - {fileID: 2243616081234245449, guid: b84686a12c55a394d84fa0e3347d6b49, type: 3}
-  itemSpawnPointName: ItemSpawn
-  useRandomSeed: 1
-  seedOffset: 10000
-  preventLoops: 1
-  prevent2x2Blocks: 1
-  currentCount: 0
-  requiredCount: 0
-  finishPortalPrefab: {fileID: 0}
-  activeFinishPortal: {fileID: 0}
 --- !u!4 &139717404
 Transform:
   m_ObjectHideFlags: 0
@@ -331,13 +288,202 @@ MonoBehaviour:
   m_GameObject: {fileID: 139717402}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 508cf4b6f6ea12341a4a592bd4d3ee10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NullscapeSocketGenerator
+  player: {fileID: 454154473}
+  spawnPrefab: {fileID: 1596306326308008608, guid: 3319222cb25e38542aaed27f214ac79f, type: 3}
+  chunkSize: 10
+  chunkYPosition: 0
+  mapRadius: 1
+  maxTrunkLengthRatio: 0.75
+  trunkForwardBias: 1
+  trunkBranchSeedChance: 0.35
+  targetVoidRatio: 0.5
+  bigVoidShare: 0.7
+  targetPathDensity: 0.45
+  crawlerBranchChance: 0.25
+  maxGenerationRetries: 10
+  allChunkPrefabs:
+  - {fileID: 6763487673237405804, guid: 503abe04257f14e4b9c6be2a0e424f2d, type: 3}
+  - {fileID: 5588381173224002104, guid: 28a86a3b1ad654f43bd1691599e89b81, type: 3}
+  - {fileID: 8449835838399874673, guid: 3ed00cf5b73312848a2d674fb67f70e6, type: 3}
+  - {fileID: 3938014596051956393, guid: 34a93f4d786b9e843b1c08ea2662d4e2, type: 3}
+  - {fileID: 2555418048352630638, guid: 060e9017860de964fa0d00f79e8f3fd4, type: 3}
+  - {fileID: 4235895589536427427, guid: ed1d8d43285cc31439b98b88b9a486b4, type: 3}
+  itemPrefabs:
+  - {fileID: 2243616081234245449, guid: b84686a12c55a394d84fa0e3347d6b49, type: 3}
+  itemSpawnPointName: ItemSpawn
+  useRandomSeed: 1
+  seedOffset: 10000
+  preventLoops: 1
+  prevent2x2Blocks: 1
+--- !u!114 &139717406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139717402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5039e12ab82e93843bac61b7c82de977, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   itemCounterText: {fileID: 488186643}
   displayFormat: '{0} / {1}'
-  finishPrefab: {fileID: 8217410948361807191, guid: 9c65a22a6941e2e4da35e448bf3170b6, type: 3}
+  finishPortalPrefab: {fileID: 8217410948361807191, guid: 9c65a22a6941e2e4da35e448bf3170b6, type: 3}
   finishOffsetAboveStart: {x: 0, y: 5, z: 0}
+  lobbySpawnPoint: {fileID: 2099379417}
+  lobbyEnvironmentRoot: {fileID: 420756534}
+  optionSpawnPoints:
+  - {fileID: 543770931}
+  - {fileID: 1270399133}
+  - {fileID: 1341491795}
+  startPortalSpawnPoint: {fileID: 1393080902}
+  startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
+  minEnemySpawnDistance: 25
+  maxEnemySpawnDistance: 50
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  raycastStartHeight: 20
+  maxRaycastDistance: 40
+  currentLevel: 1
+  playerBuffOptions:
+  - title: Broken Running Shoes
+    description: 'Base speed increases by 10%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 10
+  - title: Cheap Running Shoes
+    description: 'Base speed increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 20
+  - title: Typical Running Shoes
+    description: 'Base speed increases by 30%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 30
+  - title: Perfect Running Shoes
+    description: 'Base speed increases by 40%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 40
+  - title: Scrapyard-based Jumping Spring
+    description: 'Base jump height increases by 10%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 10
+  - title: Walmart-type Jumping Spring
+    description: 'Base jump height increases by 15%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 15
+  - title: Nothing-special Jumping Spring
+    description: 'Base jump height increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 20
+  - title: Truly the Jumping Spring
+    description: 'Base jump height increases by 25%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 25
+  - title: Off-shore Damage Absorber
+    description: Can absorb damage up to 1 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 1
+  - title: Online-shopping Damage Absorber
+    description: Can absorb damage up to 2 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 2
+  - title: Perfect Damage Absorber
+    description: Can absorb damage up to 3 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 3
+  - title: Trashcan-level Magnet
+    description: 'Base pickup range increases by 10%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 10
+  - title: Cheap Magnet
+    description: 'Base pickup range increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 20
+  - title: drawing-of Absolute Magnet
+    description: 'Base pickup range increases by 30%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 30
+  - title: Gravity Magnet
+    description: 'Base pickup range increases by 40%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 40
+  enemySelectionOptions:
+  - title: Follower
+    description: Follower will follow you forever.
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: enemy_follower
+    levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
+    enemyCount: 1
+  enemyBuffOptions:
+  - title: Enemy Buff
+    description: Desc.
+    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    optionID: 
+    enemyStatMultiplier: 1
+  levelRuleOptions:
+  - title: Level Rule
+    description: Desc.
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: 
+    ruleType: 
 --- !u!1 &145851546
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,7 +789,7 @@ Transform:
   m_GameObject: {fileID: 454154468}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -661,9 +807,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 473da4e0b2f555648a0087f37160b403, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 10
-  jumpHeight: 2
+  baseMoveSpeed: 5
+  baseJumpHeight: 2
   gravity: -20
+  basePickupRadius: 2
+  baseMaxHealth: 1
+  baseMaxShield: 0
   groundCheckRadius: 0.3
   groundCheckOffset: 0.05
   groundLayer:
@@ -770,10 +919,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: 0 / 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -850,79 +999,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 488186641}
   m_CullTransparentMesh: 1
---- !u!1 &490229259
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 490229260}
-  - component: {fileID: 490229261}
-  m_Layer: 3
-  m_Name: LobbyManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &490229260
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 490229259}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &490229261
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 490229259}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f8d5856a72f59649a673a778e32e961, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyGameManager
-  lobbySpawnPoint: {fileID: 2099379417}
-  lobbyEnvironmentRoot: {fileID: 420756534}
-  currentLevel: 1
-  optionSpawnPoints:
-  - {fileID: 543770931}
-  - {fileID: 1270399133}
-  - {fileID: 1341491795}
-  startPortalSpawnPoint: {fileID: 1393080902}
-  startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
-  playerBuffOptions:
-  - title: Speed
-    description: More speed
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: 
-  enemySelectionOptions:
-  - title: Enemy
-    description: More enemy
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
-    optionID: 
-  enemyBuffOptions:
-  - title: Enemy Buff
-    description: Harder enemy
-    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
-    optionID: 
-  levelRuleOptions:
-  - title: Rule Change
-    description: What rule?
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
-    optionID: 
 --- !u!1 &543770930
 GameObject:
   m_ObjectHideFlags: 0
@@ -1033,6 +1109,143 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &757469051
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 757469052}
+  - component: {fileID: 757469054}
+  - component: {fileID: 757469053}
+  m_Layer: 5
+  m_Name: CollectText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &757469052
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 757469051}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2126116046}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 70}
+  m_SizeDelta: {x: 1080, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &757469053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 757469051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: collectible
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 20
+  m_fontSizeBase: 20
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 32
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &757469054
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 757469051}
+  m_CullTransparentMesh: 1
 --- !u!1 &1208079124
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,6 +1576,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 757469052}
   - {fileID: 488186642}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1380,6 +1594,5 @@ SceneRoots:
   - {fileID: 549072134}
   - {fileID: 2126116046}
   - {fileID: 139717404}
-  - {fileID: 490229260}
-  - {fileID: 454154473}
   - {fileID: 420756535}
+  - {fileID: 454154473}

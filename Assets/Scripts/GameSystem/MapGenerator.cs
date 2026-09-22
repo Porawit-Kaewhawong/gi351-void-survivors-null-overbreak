@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NullscapeSocketGenerator : MonoBehaviour
+public class MapGenerator : MonoBehaviour
 {
-    public static NullscapeSocketGenerator Instance { get; private set; }
+    public static MapGenerator Instance { get; private set; }
 
     [Header("3D World & Map Size Settings")]
     public Transform player;
@@ -14,29 +14,21 @@ public class NullscapeSocketGenerator : MonoBehaviour
     public int mapRadius = 15;
 
     [Header("Balanced Organic Trunks (Directional Winding)")]
-    [Tooltip("Maximum reach for main directional trunks relative to mapRadius (0.75 = 75%).")]
     [Range(0.4f, 0.95f)] public float maxTrunkLengthRatio = 0.75f;
-    [Tooltip("How strongly trunks push forward vs taking random lateral curves (Higher = straighter, Lower = twistier).")]
     [Range(0.5f, 3.0f)] public float trunkForwardBias = 1.0f;
 
     [Header("Trunk Mid-Branch Seeding")]
-    [Tooltip("Chance per trunk step to designate a seed node for full organic branching in Phase 2.")]
     [Range(0.1f, 0.6f)] public float trunkBranchSeedChance = 0.35f;
 
     [Header("Dynamic Void Budgeting (Target ~50%)")]
-    [Tooltip("Percentage of total map area carved out as voids (0.50 = 50%).")]
     [Range(0.2f, 0.7f)] public float targetVoidRatio = 0.50f;
-    [Tooltip("Percentage of void area assigned to big voids vs small voids.")]
     [Range(0.4f, 0.85f)] public float bigVoidShare = 0.70f;
 
     [Header("Organic Path Crawler Settings")]
-    [Tooltip("Target percentage of path coverage across non-void tiles.")]
     [Range(0.25f, 0.8f)] public float targetPathDensity = 0.45f;
-    [Tooltip("Chance for a path crawler to branch out into a new direction.")]
     [Range(0.05f, 0.4f)] public float crawlerBranchChance = 0.25f;
 
     [Header("Generator Reliability & Fail-Safe")]
-    [Tooltip("Maximum attempts to regenerate if crawlers get prematurely choked.")]
     public int maxGenerationRetries = 10;
 
     [Header("Socket Prefab Library")]
@@ -46,7 +38,7 @@ public class NullscapeSocketGenerator : MonoBehaviour
     public GameObject[] itemPrefabs;
     public string itemSpawnPointName = "ItemSpawn";
 
-    [Header("Generator Settings")]
+    [Header("Generator Seed Settings")]
     public bool useRandomSeed = true;
     public int seedOffset = 10000;
 
@@ -54,17 +46,11 @@ public class NullscapeSocketGenerator : MonoBehaviour
     public bool preventLoops = true;
     public bool prevent2x2Blocks = true;
 
-    [Header("Level Objective & Finish Portal")]
-    public int currentCount = 0;
-    public int requiredCount = 0;
-    public GameObject finishPortalPrefab;
-    public GameObject activeFinishPortal;
-
     public Vector3 StartChunkWorldPosition { get; private set; }
 
-    private Dictionary<Vector2Int, GameObject> activeChunks = new Dictionary<Vector2Int, GameObject>();
-    private HashSet<Vector2Int> pathCells = new HashSet<Vector2Int>();
-    private HashSet<Vector2Int> voidMask = new HashSet<Vector2Int>();
+    private readonly Dictionary<Vector2Int, GameObject> activeChunks = new Dictionary<Vector2Int, GameObject>();
+    private readonly HashSet<Vector2Int> pathCells = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> voidMask = new HashSet<Vector2Int>();
     private Vector2Int startCoord;
 
     private void Awake()
@@ -77,14 +63,13 @@ public class NullscapeSocketGenerator : MonoBehaviour
         Instance = this;
     }
 
-    void Start()
+    private void Start()
     {
-        // Initializes seed logic; level is NOT automatically generated on scene start.
         if (useRandomSeed) seedOffset = Random.Range(0, 1000000);
         Random.InitState(seedOffset);
     }
 
-    Vector2Int GetGridCoord(Vector3 worldPos)
+    public Vector2Int GetGridCoord(Vector3 worldPos)
     {
         return new Vector2Int(
             Mathf.FloorToInt(worldPos.x / chunkSize),
@@ -92,46 +77,9 @@ public class NullscapeSocketGenerator : MonoBehaviour
         );
     }
 
-    public bool IsPathCell(Vector2Int coord)
-    {
-        return pathCells.Contains(coord);
-    }
+    public bool IsPathCell(Vector2Int coord) => pathCells.Contains(coord);
 
-    // --- OBJECTIVE TRACKING & FINISH PORTAL FLOW ---
-
-    public void ResetLevelCounters()
-    {
-        currentCount = 0;
-        requiredCount = 0;
-    }
-
-    public void RegisterObjectiveTarget()
-    {
-        requiredCount++;
-    }
-
-    public void IncrementObjectiveCount()
-    {
-        currentCount++;
-        Debug.Log($"[Objective Progress] {currentCount} / {requiredCount}");
-
-        if (currentCount >= requiredCount && requiredCount > 0)
-        {
-            OpenFinishPortal();
-        }
-    }
-
-    private void OpenFinishPortal()
-    {
-        if (finishPortalPrefab != null && activeFinishPortal == null)
-        {
-            Vector3 portalPos = StartChunkWorldPosition + new Vector3(0f, 1f, 0f);
-            activeFinishPortal = Instantiate(finishPortalPrefab, portalPos, Quaternion.identity);
-            Debug.Log("[Objective Complete] All targets cleared! Finish Portal spawned.");
-        }
-    }
-
-    // --- MAP GENERATION & CLEANUP PIPELINE ---
+    // --- MAP GENERATION PIPELINE ---
 
     public void ClearMap()
     {
@@ -140,26 +88,20 @@ public class NullscapeSocketGenerator : MonoBehaviour
             if (chunk != null) Destroy(chunk);
         }
         activeChunks.Clear();
-
-        if (activeFinishPortal != null)
-        {
-            Destroy(activeFinishPortal);
-            activeFinishPortal = null;
-        }
-
         pathCells.Clear();
         voidMask.Clear();
-
-        ResetLevelCounters();
     }
 
     public void GenerateMap()
     {
-        // 1. Reset and flush previous map state
         ClearMap();
 
-        startCoord = (player != null) ? GetGridCoord(player.position) : Vector2Int.zero;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetItemCount();
+        }
 
+        startCoord = (player != null) ? GetGridCoord(player.position) : Vector2Int.zero;
         bool generationSuccessful = false;
 
         for (int attempt = 0; attempt < maxGenerationRetries; attempt++)
@@ -176,24 +118,25 @@ public class NullscapeSocketGenerator : MonoBehaviour
 
         if (!generationSuccessful)
         {
-            Debug.LogWarning("[NullscapeGenerator] Fallback layout initialized.");
+            Debug.LogWarning("[MapGenerator] Map generation failed to reach minimum density. Using fallback bounds.");
         }
 
-        // 2. Instantiate physical chunks & count objective points
         InstantiateMapChunks();
 
-        // 3. SAFETY GUARANTEE FOR LEVEL OBJECTIVES
-        if (requiredCount == 0)
+        // Safety auto-finish check if layout has no items spawned
+        if (GameManager.Instance != null && GameManager.Instance.finishPortalPrefab != null)
         {
-            Debug.LogWarning("[NullscapeGenerator] No item spawn points detected on this layout! Spawning Finish Portal automatically.");
-            OpenFinishPortal();
-        }
-        else
-        {
-            Debug.Log($"[NullscapeGenerator] Level initialized with {requiredCount} required targets.");
+            // If zero items were registered during instantiation
+            System.Reflection.FieldInfo totalItemsField = typeof(GameManager).GetField("totalItems", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            int totalItems = (totalItemsField != null) ? (int)totalItemsField.GetValue(GameManager.Instance) : 0;
+
+            if (totalItems == 0)
+            {
+                Debug.LogWarning("[MapGenerator] No objective items found on layout! Auto-opening Finish Portal.");
+                GameManager.Instance.TriggerFinish();
+            }
         }
 
-        // 4. Teleport player into the new map
         TeleportPlayerToSpawn();
     }
 
@@ -202,7 +145,6 @@ public class NullscapeSocketGenerator : MonoBehaviour
         pathCells.Clear();
         voidMask.Clear();
 
-        // GUARANTEE 4-WAY SPAWN EXITS: Always carve spawn and all 4 cardinal direction tiles
         pathCells.Add(startCoord);
         Vector2Int[] cardinalDirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         foreach (var dir in cardinalDirs)
@@ -212,13 +154,8 @@ public class NullscapeSocketGenerator : MonoBehaviour
             pathCells.Add(exitTile);
         }
 
-        // 1. Carve 50% void space
         CarveAreaBudgetedVoids();
-
-        // 2. Build organic trunks directly from the 4 spawn exit nodes
         List<Vector2Int> crawlerSeeds = GrowOrganicBalancedTrunks();
-
-        // 3. Grow organic winding networks out from trunk seeds
         GrowOrganicWindingPaths(crawlerSeeds);
 
         int totalRadialArea = Mathf.RoundToInt(Mathf.PI * mapRadius * mapRadius);
@@ -247,7 +184,6 @@ public class NullscapeSocketGenerator : MonoBehaviour
             }
 
             (GameObject prefab, float rotation) = FindMatchingSocketPrefab(coord);
-
             if (prefab != null)
             {
                 GameObject chunk = Instantiate(prefab, spawnPos, Quaternion.Euler(0f, rotation, 0f));
@@ -262,18 +198,16 @@ public class NullscapeSocketGenerator : MonoBehaviour
         if (player == null) return;
 
         Vector3 targetSpawnPos = StartChunkWorldPosition + new Vector3(0f, 2f, 0f);
-
         CharacterController cc = player.GetComponent<CharacterController>();
+
         if (cc != null) cc.enabled = false;
-
         player.position = targetSpawnPos;
-
         if (cc != null) cc.enabled = true;
 
         Physics.SyncTransforms();
     }
 
-    // --- PHASE 1: ORGANIC WINDING TRUNKS + SEED REGISTRATION ---
+    // --- ALGORITHMIC GENERATION STAGES ---
 
     private List<Vector2Int> GrowOrganicBalancedTrunks()
     {
@@ -285,32 +219,24 @@ public class NullscapeSocketGenerator : MonoBehaviour
 
         foreach (var targetDir in targetDirections)
         {
-            // Start directly from the cardinal exit node around spawn
             Vector2Int current = startCoord + targetDir;
             crawlerSeeds.Add(current);
-
             int maxStepBudget = targetDistance * 4;
 
             for (int step = 0; step < maxStepBudget; step++)
             {
-                int currentRadialDistance = Mathf.RoundToInt(Vector2Int.Distance(current, startCoord));
-                if (currentRadialDistance >= targetDistance) break;
+                if (Mathf.RoundToInt(Vector2Int.Distance(current, startCoord)) >= targetDistance) break;
 
                 List<(Vector2Int tile, float weight)> candidates = new List<(Vector2Int, float)>();
 
                 foreach (var dir in stepOptions)
                 {
                     Vector2Int neighbor = current + dir;
-
-                    if (voidMask.Contains(neighbor))
-                    {
-                        voidMask.Remove(neighbor);
-                    }
+                    voidMask.Remove(neighbor);
 
                     if (IsWithinEuclideanRadius(neighbor, mapRadius) && !WouldCreateDonutOrLoop(neighbor, current))
                     {
                         float alignment = Vector2.Dot((Vector2)dir, (Vector2)targetDir);
-
                         if (alignment >= -0.3f)
                         {
                             float weight = (alignment * trunkForwardBias) + Random.Range(0.4f, 1.8f);
@@ -322,7 +248,6 @@ public class NullscapeSocketGenerator : MonoBehaviour
                 if (candidates.Count > 0)
                 {
                     candidates.Sort((a, b) => b.weight.CompareTo(a.weight));
-
                     Vector2Int chosenTile = (Random.value < 0.7f || candidates.Count == 1)
                         ? candidates[0].tile
                         : candidates[Random.Range(0, candidates.Count)].tile;
@@ -336,17 +261,11 @@ public class NullscapeSocketGenerator : MonoBehaviour
 
                     current = chosenTile;
                 }
-                else
-                {
-                    break;
-                }
+                else break;
             }
         }
-
         return crawlerSeeds;
     }
-
-    // --- AREA-BUDGETED IRREGULAR VOID CARVING ---
 
     private void CarveAreaBudgetedVoids()
     {
@@ -388,28 +307,19 @@ public class NullscapeSocketGenerator : MonoBehaviour
     {
         Vector2Int current = start;
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
         int addedTiles = 0;
         int safetyLimit = targetNewTiles * 25;
 
         while (addedTiles < targetNewTiles && safetyLimit > 0)
         {
             safetyLimit--;
-
             if (IsWithinEuclideanRadius(current, mapRadius) && !protectedZone.Contains(current))
             {
-                if (voidMask.Add(current))
-                {
-                    addedTiles++;
-                }
+                if (voidMask.Add(current)) addedTiles++;
             }
 
             current += dirs[Random.Range(0, dirs.Length)];
-
-            if (!IsWithinEuclideanRadius(current, mapRadius))
-            {
-                current = start;
-            }
+            if (!IsWithinEuclideanRadius(current, mapRadius)) current = start;
         }
     }
 
@@ -430,8 +340,6 @@ public class NullscapeSocketGenerator : MonoBehaviour
         return startCoord;
     }
 
-    // --- PHASE 2: ORGANIC WINDING PATH GROWTH ---
-
     private void GrowOrganicWindingPaths(List<Vector2Int> initialSeeds)
     {
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
@@ -446,19 +354,14 @@ public class NullscapeSocketGenerator : MonoBehaviour
         while (pathCells.Count < targetPathCount && activeCrawlers.Count > 0 && safetyLimit > 0)
         {
             safetyLimit--;
-
             int randomIndex = Random.Range(0, activeCrawlers.Count);
             Vector2Int current = activeCrawlers[randomIndex];
 
             List<Vector2Int> validSteps = new List<Vector2Int>();
-
             foreach (var dir in dirs)
             {
                 Vector2Int neighbor = current + dir;
-
-                if (IsWithinEuclideanRadius(neighbor, mapRadius) &&
-                    !voidMask.Contains(neighbor) &&
-                    !WouldCreateDonutOrLoop(neighbor, current))
+                if (IsWithinEuclideanRadius(neighbor, mapRadius) && !voidMask.Contains(neighbor) && !WouldCreateDonutOrLoop(neighbor, current))
                 {
                     validSteps.Add(neighbor);
                 }
@@ -468,13 +371,9 @@ public class NullscapeSocketGenerator : MonoBehaviour
             {
                 Vector2Int chosenTile = validSteps[Random.Range(0, validSteps.Count)];
                 pathCells.Add(chosenTile);
-
                 activeCrawlers[randomIndex] = chosenTile;
 
-                if (Random.value < crawlerBranchChance)
-                {
-                    activeCrawlers.Add(chosenTile);
-                }
+                if (Random.value < crawlerBranchChance) activeCrawlers.Add(chosenTile);
             }
             else
             {
@@ -482,8 +381,6 @@ public class NullscapeSocketGenerator : MonoBehaviour
             }
         }
     }
-
-    // --- RADIAL BOUNDARY & VALIDATION HELPERS ---
 
     private bool IsWithinEuclideanRadius(Vector2Int coord, float maxRadius)
     {
@@ -508,14 +405,12 @@ public class NullscapeSocketGenerator : MonoBehaviour
                     existingNeighbors++;
                 }
             }
-
             if (existingNeighbors > 0) return true;
         }
 
         if (prevent2x2Blocks)
         {
             Vector2Int[] offsets = { new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1) };
-
             foreach (var offset in offsets)
             {
                 Vector2Int p2 = candidate + new Vector2Int(offset.x, 0);
@@ -532,7 +427,7 @@ public class NullscapeSocketGenerator : MonoBehaviour
         return false;
     }
 
-    // --- ITEM SPAWNING & OBJECTIVE REGISTRATION ---
+    // --- ITEM SPAWNING & PREFAB MATCHING ---
 
     private void SpawnItemsInChunk(GameObject chunkInstance, Vector2Int coord)
     {
@@ -545,28 +440,22 @@ public class NullscapeSocketGenerator : MonoBehaviour
         {
             if (child.name.Equals(itemSpawnPointName, System.StringComparison.OrdinalIgnoreCase))
             {
-                int hash = Mathf.Abs(((coord.x + seedOffset) * 73856093) ^
-                                     ((coord.y + seedOffset) * 19349663) ^
-                                     (spawnPointIndex * 83492791));
-
+                int hash = Mathf.Abs(((coord.x + seedOffset) * 73856093) ^ ((coord.y + seedOffset) * 19349663) ^ (spawnPointIndex * 83492791));
                 int itemIndex = hash % itemPrefabs.Length;
                 GameObject selectedItem = itemPrefabs[itemIndex];
 
                 if (selectedItem != null)
                 {
                     GameObject itemInstance = Instantiate(selectedItem, child);
-                    itemInstance.transform.localPosition = Vector3.zero;
-                    itemInstance.transform.localRotation = selectedItem.transform.localRotation;
+                    itemInstance.transform.SetLocalPositionAndRotation(Vector3.zero, selectedItem.transform.localRotation);
 
-                    RegisterObjectiveTarget();
+                    // Removed GameManager.Instance.RegisterItem();
+                    // Collectible.cs handles its own registration in Start() upon instantiation.
                 }
-
                 spawnPointIndex++;
             }
         }
     }
-
-    // --- SOCKET PREFAB MATCHING ---
 
     private (GameObject prefab, float rotation) FindMatchingSocketPrefab(Vector2Int coord)
     {
@@ -576,8 +465,7 @@ public class NullscapeSocketGenerator : MonoBehaviour
         bool reqW = IsPathCell(coord + Vector2Int.left);
 
         int hash = Mathf.Abs(((coord.x + seedOffset) * 73856093) ^ ((coord.y + seedOffset) * 19349663));
-        float[] possibleRotations = new float[] { 0f, 90f, 180f, 270f };
-
+        float[] possibleRotations = { 0f, 90f, 180f, 270f };
         List<GameObject> shuffledPrefabs = GetShuffledPrefabs(hash);
 
         foreach (var prefab in shuffledPrefabs)
@@ -594,9 +482,9 @@ public class NullscapeSocketGenerator : MonoBehaviour
                 bool curN = false, curE = false, curS = false, curW = false;
 
                 if (rot == 0f) { curN = hasN; curE = hasE; curS = hasS; curW = hasW; }
-                if (rot == 90f) { curN = hasW; curE = hasN; curS = hasE; curW = hasS; }
-                if (rot == 180f) { curN = hasS; curE = hasW; curS = hasN; curW = hasE; }
-                if (rot == 270f) { curN = hasE; curE = hasS; curS = hasW; curW = hasN; }
+                else if (rot == 90f) { curN = hasW; curE = hasN; curS = hasE; curW = hasS; }
+                else if (rot == 180f) { curN = hasS; curE = hasW; curS = hasN; curW = hasE; }
+                else if (rot == 270f) { curN = hasE; curE = hasS; curS = hasW; curW = hasN; }
 
                 if (curN == reqN && curE == reqE && curS == reqS && curW == reqW)
                 {
@@ -605,6 +493,7 @@ public class NullscapeSocketGenerator : MonoBehaviour
             }
         }
 
+        // Fallback partial socket match
         foreach (var prefab in shuffledPrefabs)
         {
             if (prefab == null) continue;
@@ -619,9 +508,9 @@ public class NullscapeSocketGenerator : MonoBehaviour
                 bool curN = false, curE = false, curS = false, curW = false;
 
                 if (rot == 0f) { curN = hasN; curE = hasE; curS = hasS; curW = hasW; }
-                if (rot == 90f) { curN = hasW; curE = hasN; curS = hasE; curW = hasS; }
-                if (rot == 180f) { curN = hasS; curE = hasW; curS = hasN; curW = hasE; }
-                if (rot == 270f) { curN = hasE; curE = hasS; curS = hasW; curW = hasN; }
+                else if (rot == 90f) { curN = hasW; curE = hasN; curS = hasE; curW = hasS; }
+                else if (rot == 180f) { curN = hasS; curE = hasW; curS = hasN; curW = hasE; }
+                else if (rot == 270f) { curN = hasE; curE = hasS; curS = hasW; curW = hasN; }
 
                 if ((!reqN || curN) && (!reqE || curE) && (!reqS || curS) && (!reqW || curW))
                 {

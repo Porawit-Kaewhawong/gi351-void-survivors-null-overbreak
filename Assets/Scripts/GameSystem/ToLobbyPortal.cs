@@ -1,10 +1,11 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
-public class InGameFinishPortal : MonoBehaviour
+public class ToLobbyPortal : MonoBehaviour
 {
     [Header("Player Detection")]
     public string playerTag = "Player";
+
     private bool levelFinished = false;
 
     private void Awake()
@@ -17,21 +18,16 @@ public class InGameFinishPortal : MonoBehaviour
     {
         if (levelFinished) return;
 
-        if (other.CompareTag(playerTag) || other.GetComponent<CharacterController>() != null)
+        // Check strictly for the Player tag or PlayerController script
+        if (other.CompareTag(playerTag) || other.GetComponent<PlayerController>() != null)
         {
             levelFinished = true;
 
-            // Trigger level completion in Lobby Manager
-            if (LobbyGameManager.Instance != null)
+            if (GameManager.Instance != null)
             {
-                LobbyGameManager.Instance.OnLevelCompleted();
-            }
-            else if (LobbyGameManager.Instance != null)
-            {
-                LobbyGameManager.Instance.OnLevelCompleted();
+                GameManager.Instance.OnLevelCompleted();
             }
 
-            // Destroy this portal instance immediately
             Destroy(gameObject);
         }
     }
