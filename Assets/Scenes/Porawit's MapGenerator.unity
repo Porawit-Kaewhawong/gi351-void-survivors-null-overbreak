@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -342,27 +342,148 @@ MonoBehaviour:
   - {fileID: 1341491795}
   startPortalSpawnPoint: {fileID: 1393080902}
   startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
+  minEnemySpawnDistance: 25
+  maxEnemySpawnDistance: 50
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  raycastStartHeight: 20
+  maxRaycastDistance: 40
   currentLevel: 1
   playerBuffOptions:
-  - title: Player Buff
-    description: Desc.
+  - title: Broken Running Shoes
+    description: 'Base speed increases by 10%
+
+'
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: 
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 10
+  - title: Cheap Running Shoes
+    description: 'Base speed increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 20
+  - title: Typical Running Shoes
+    description: 'Base speed increases by 30%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 30
+  - title: Perfect Running Shoes
+    description: 'Base speed increases by 40%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: speed_boost
+    targetStat: 1
+    buffValue: 40
+  - title: Scrapyard-based Jumping Spring
+    description: 'Base jump height increases by 10%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 10
+  - title: Walmart-type Jumping Spring
+    description: 'Base jump height increases by 15%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 15
+  - title: Nothing-special Jumping Spring
+    description: 'Base jump height increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 20
+  - title: Truly the Jumping Spring
+    description: 'Base jump height increases by 25%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: jump_boost
+    targetStat: 2
+    buffValue: 25
+  - title: Off-shore Damage Absorber
+    description: Can absorb damage up to 1 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 1
+  - title: Online-shopping Damage Absorber
+    description: Can absorb damage up to 2 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 2
+  - title: Perfect Damage Absorber
+    description: Can absorb damage up to 3 hits
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: shield
+    targetStat: 4
+    buffValue: 3
+  - title: Trashcan-level Magnet
+    description: 'Base pickup range increases by 10%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 10
+  - title: Cheap Magnet
+    description: 'Base pickup range increases by 20%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 20
+  - title: drawing-of Absolute Magnet
+    description: 'Base pickup range increases by 30%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 30
+  - title: Gravity Magnet
+    description: 'Base pickup range increases by 40%
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: pickup_range
+    targetStat: 3
+    buffValue: 40
   enemySelectionOptions:
-  - title: Enemy Selection
-    description: Desc.
+  - title: Follower
+    description: Follower will follow you forever.
     prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
-    optionID: 
+    optionID: enemy_follower
+    levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
+    enemyCount: 1
   enemyBuffOptions:
   - title: Enemy Buff
     description: Desc.
     prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
     optionID: 
+    enemyStatMultiplier: 1
   levelRuleOptions:
   - title: Level Rule
     description: Desc.
     prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
     optionID: 
+    ruleType: 
 --- !u!1 &145851546
 GameObject:
   m_ObjectHideFlags: 0
@@ -668,7 +789,7 @@ Transform:
   m_GameObject: {fileID: 454154468}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -686,9 +807,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 473da4e0b2f555648a0087f37160b403, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 5
-  jumpHeight: 2
+  baseMoveSpeed: 5
+  baseJumpHeight: 2
   gravity: -20
+  basePickupRadius: 2
+  baseMaxHealth: 1
+  baseMaxShield: 0
   groundCheckRadius: 0.3
   groundCheckOffset: 0.05
   groundLayer:

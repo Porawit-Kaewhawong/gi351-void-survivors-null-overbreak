@@ -18,7 +18,8 @@ public class ToLobbyPortal : MonoBehaviour
     {
         if (levelFinished) return;
 
-        if (other.CompareTag(playerTag) || other.GetComponent<CharacterController>() != null)
+        // Check strictly for the Player tag or PlayerController script
+        if (other.CompareTag(playerTag) || other.GetComponent<PlayerController>() != null)
         {
             levelFinished = true;
 

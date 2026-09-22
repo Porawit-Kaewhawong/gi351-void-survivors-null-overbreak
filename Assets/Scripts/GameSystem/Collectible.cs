@@ -4,11 +4,36 @@ public class Collectible : MonoBehaviour
 {
     private bool isCollected = false;
     private bool isRegistered = false;
+    private Transform playerTransform;
+    private PlayerController playerController;
 
     private void Awake()
     {
-        // Register immediately during Instantiate() so MapGenerator sees the count on frame 1
         Register();
+    }
+
+    private void Start()
+    {
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerController = playerObj.GetComponent<PlayerController>();
+        }
+    }
+
+    private void Update()
+    {
+        if (isCollected || playerTransform == null) return;
+
+        float range = playerController != null ? playerController.CurrentPickupRadius : 2f;
+        float distance = Vector3.Distance(transform.position, playerTransform.position);
+
+        // Move item toward player if inside magnetic pickup range
+        if (distance <= range)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, 10f * Time.deltaTime);
+        }
     }
 
     private void Register()
