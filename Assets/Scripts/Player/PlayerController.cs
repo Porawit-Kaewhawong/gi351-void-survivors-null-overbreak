@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -8,6 +9,10 @@ public class PlayerController : MonoBehaviour
     [Header("Base Jump Settings")]
     public float baseJumpHeight = 2f;
     public float gravity = -20f;
+
+    [Header("Fall Death Settings")]
+    [Tooltip("If the player drops below this Y height in the world, Die() is automatically triggered.")]
+    public float killYThreshold = -20f;
 
     [Header("Base Pickup Radius Settings")]
     public float basePickupRadius = 2f;
@@ -91,10 +96,22 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
+        CheckFallDeath();
         CheckGround();
         HandleMovement();
         HandleJump();
         ApplyGravity();
+    }
+
+    // --- FALL DEATH CHECK ---
+
+    private void CheckFallDeath()
+    {
+        if (transform.position.y < killYThreshold)
+        {
+            Debug.Log($"[Player] Fell below height limit ({killYThreshold}m). Triggering death.");
+            Die();
+        }
     }
 
     // --- HEALTH & DAMAGE ---

@@ -25,11 +25,11 @@ public enum EnemyStatType
 
 public enum LobbySelectionType
 {
-    PlayerWeapon = 0,      // Level 1, 6, 11...
-    EnemySelection = 1, // Level 2, 7, 12...
+    PlayerWeapon = 0,
+    EnemySelection = 1,
     PlayerBuff = 2,     // Level 3, 8, 13...
     EnemyBuff = 3,      // Level 4, 9, 14...
-    LevelRule = 4    // Level 5, 10, 15...
+    LevelRule = 4       // Level 5, 10, 15...
 }
 
 public enum LevelRuleType
@@ -81,7 +81,7 @@ public class EnemySelectionOption : LobbyOption
     [Header("Enemy Configuration")]
     public GameObject levelSpawnPrefab;
 
-    [Tooltip("Base number of enemies spawned per selection.")]
+    [Tooltip("Base number of enemies spawned per selection every interval.")]
     public int enemyCount = 1;
 }
 
@@ -129,6 +129,9 @@ public class GameManager : MonoBehaviour
     public GameObject startPortalPrefab;
 
     [Header("Enemy Spawning & Surface Settings")]
+    [Tooltip("Time interval in seconds between continuous enemy spawn waves.")]
+    public float enemySpawnInterval = 5f;
+
     [Tooltip("Preferred minimum distance from player start position.")]
     public float minEnemySpawnDistance = 12f;
 
@@ -347,6 +350,7 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
+        StopSpawningEnemies();
         ClearLobbyObjects();
         LobbySelectionType currentType = GetSelectionTypeForLevel(currentLevel);
         Spawn3DSelectionOptions(currentType);
@@ -447,40 +451,70 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator SpawnEnemiesRoutine(float delaySeconds, Vector3 spawnOrigin)
+    // --- CONTINUOUS ENEMY SPAWN ROUTINE (EVERY 5 SECONDS) ---
+
+    private IEnumerator ContinuousSpawnEnemiesRoutine(float interval)
     {
-        yield return new WaitForSeconds(delaySeconds);
+        // Initial delay before the first wave spawns
+        yield return new WaitForSeconds(1.5f);
 
-        List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
-        foreach (var modifier in ActiveModifiers)
+        while (true)
         {
-            if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
+            // Dynamically find current player position so enemies always spawn nearby as the player moves
+            Vector3 currentSpawnOrigin = Vector3.zero;
+            GameObject playerObj = GameObject.FindWithTag("Player");
+
+            if (playerObj != null)
             {
-                activeEnemyTypes.Add(enemyOpt);
+                currentSpawnOrigin = playerObj.transform.position;
             }
-        }
-
-        if (activeEnemyTypes.Count == 0) yield break;
-
-        foreach (var enemyOpt in activeEnemyTypes)
-        {
-            for (int i = 0; i < enemyOpt.enemyCount; i++)
+            else if (MapGenerator.Instance != null)
             {
-                SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, spawnOrigin);
+                currentSpawnOrigin = MapGenerator.Instance.StartChunkWorldPosition;
             }
+
+            // Collect all enemy selection modifiers active in the current run
+            List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
+            foreach (var modifier in ActiveModifiers)
+            {
+                if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
+                {
+                    activeEnemyTypes.Add(enemyOpt);
+                }
+            }
+
+            if (activeEnemyTypes.Count > 0)
+            {
+                // Spawn base enemy selection groups
+                foreach (var enemyOpt in activeEnemyTypes)
+                {
+                    for (int i = 0; i < enemyOpt.enemyCount; i++)
+                    {
+                        SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, currentSpawnOrigin);
+                    }
+                }
+
+                // Spawn bonus extra enemies based on enemy buff modifiers
+                int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
+                for (int i = 0; i < extraEnemyCount; i++)
+                {
+                    int randomIndex = Random.Range(0, activeEnemyTypes.Count);
+                    GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
+                    SpawnSingleEnemy(randomPrefab, currentSpawnOrigin);
+                }
+            }
+
+            yield return new WaitForSeconds(interval);
         }
+    }
 
-        int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
-
-        for (int i = 0; i < extraEnemyCount; i++)
+    private void StopSpawningEnemies()
+    {
+        if (activeSpawnCoroutine != null)
         {
-            int randomIndex = Random.Range(0, activeEnemyTypes.Count);
-            GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
-
-            SpawnSingleEnemy(randomPrefab, spawnOrigin);
+            StopCoroutine(activeSpawnCoroutine);
+            activeSpawnCoroutine = null;
         }
-
-        activeSpawnCoroutine = null;
     }
 
     private void SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
@@ -492,7 +526,10 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Vector3 fallbackPos = spawnOrigin + Vector3.up * 0.5f;
+            // Safe Fallback: Offset by minEnemySpawnDistance instead of spawning directly on the player
+            Vector2 safeOffset = Random.insideUnitCircle.normalized * minEnemySpawnDistance;
+            Vector3 fallbackPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
+
             GameObject spawnedEnemy = Instantiate(prefab, fallbackPos, Quaternion.identity);
             activeEnemies.Add(spawnedEnemy);
         }
@@ -516,12 +553,12 @@ public class GameManager : MonoBehaviour
                 if (!hit.collider.isTrigger)
                 {
                     validPosition = hit.point + Vector3.up * 0.5f;
-                    Debug.DrawRay(rayStartPoint, Vector3.down * hit.distance, Color.green, 5f);
+                    Debug.DrawRay(rayStartPoint, Vector3.down * hit.distance, Color.green, 2f);
                     return true;
                 }
             }
 
-            Debug.DrawRay(rayStartPoint, Vector3.down * maxRaycastDistance, Color.red, 2f);
+            Debug.DrawRay(rayStartPoint, Vector3.down * maxRaycastDistance, Color.red, 1f);
         }
 
         validPosition = Vector3.zero;
@@ -537,12 +574,9 @@ public class GameManager : MonoBehaviour
             lobbyEnvironmentRoot.SetActive(false);
         }
 
-        Vector3 initialSpawnPosition = Vector3.zero;
-
         if (MapGenerator.Instance != null)
         {
             MapGenerator.Instance.GenerateMap();
-            initialSpawnPosition = MapGenerator.Instance.StartChunkWorldPosition;
         }
 
         PlayerController player = FindFirstObjectByType<PlayerController>();
@@ -557,16 +591,15 @@ public class GameManager : MonoBehaviour
             LevelRuleManager.Instance.ApplyActiveLevelRules();
         }
 
-        if (activeSpawnCoroutine != null)
-        {
-            StopCoroutine(activeSpawnCoroutine);
-        }
-
-        activeSpawnCoroutine = StartCoroutine(SpawnEnemiesRoutine(3f, initialSpawnPosition));
+        // Restart the continuous enemy spawning loop
+        StopSpawningEnemies();
+        activeSpawnCoroutine = StartCoroutine(ContinuousSpawnEnemiesRoutine(enemySpawnInterval));
     }
 
     public void OnLevelCompleted()
     {
+        StopSpawningEnemies();
+
         if (LevelRuleManager.Instance != null && LevelRuleManager.Instance.CheckShouldRepeatLevelForRound2())
         {
             Debug.Log("[GameManager] Round 2 Active! Restarting current level without incrementing level index.");

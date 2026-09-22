@@ -3,9 +3,6 @@ using UnityEngine;
 public class BalloonEnemy : EnemyBase
 {
     [Header("Balloon Movement Settings")]
-    [Tooltip("Speed at which the balloon floats towards the player.")]
-    public float moveSpeed = 3f;
-
     [Tooltip("Height offset to keep the balloon hovering around the player.")]
     public float heightOffset = 1.5f;
 

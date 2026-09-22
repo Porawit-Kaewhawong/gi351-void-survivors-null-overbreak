@@ -317,6 +317,7 @@ MonoBehaviour:
   itemSpawnPointName: ItemSpawn
   jumpPadPrefab: {fileID: 4563187368356963404, guid: 73cb4ea20e776534a9f14c9420cb0880, type: 3}
   referenceMapRadius: 10
+  jumpPadEdgeOffset: 0.58
   useRandomSeed: 1
   seedOffset: 10000
   preventLoops: 1
@@ -345,6 +346,7 @@ MonoBehaviour:
   - {fileID: 1341491795}
   startPortalSpawnPoint: {fileID: 1393080902}
   startPortalPrefab: {fileID: 8562260293211427070, guid: 6d42c8d5df1d1414eaa706460aca7f0a, type: 3}
+  enemySpawnInterval: 5
   minEnemySpawnDistance: 25
   maxEnemySpawnDistance: 50
   groundLayer:
@@ -370,6 +372,24 @@ MonoBehaviour:
     optionID: lighting_weapon
     weaponPrefab: {fileID: 2738842398086761529, guid: 342f8bceb1257ed4faaa34014154a842, type: 3}
   enemySelectionOptions:
+  - title: Balloon
+    description: Balloon will float to you
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: enemy_balloon
+    levelSpawnPrefab: {fileID: 7480281311546530933, guid: a1c12823cb021f34d8bbc048d14d3c1b, type: 3}
+    enemyCount: 2
+  - title: Abnormal Chair
+    description: Follower will follow you forever.
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: enemy_chair
+    levelSpawnPrefab: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
+    enemyCount: 1
+  - title: Poorly-draw Character
+    description: Follower will follow you forever.
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: enemy_poorly
+    levelSpawnPrefab: {fileID: 5420205998641944471, guid: 894a12047b7d50d419a44799713edf71, type: 3}
+    enemyCount: 2
   - title: Follower
     description: Follower will follow you forever.
     prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
@@ -554,7 +574,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3e8316c917f7574fbc01b57655e1ed9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelRuleManager
-  jumpPadPrefab: {fileID: 4563187368356963404, guid: 73cb4ea20e776534a9f14c9420cb0880, type: 3}
   baseGravity: {x: 0, y: -9.81, z: 0}
 --- !u!1 &145851546
 GameObject:
@@ -625,7 +644,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: ae1dbda82b2701e429800d394e326f08, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -882,6 +901,7 @@ MonoBehaviour:
   baseMoveSpeed: 5
   baseJumpHeight: 2
   gravity: -20
+  killYThreshold: -20
   basePickupRadius: 2
   baseMaxHealth: 1
   baseMaxShield: 0
@@ -1318,6 +1338,78 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 757469051}
   m_CullTransparentMesh: 1
+--- !u!1 &819405256
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 819405257}
+  - component: {fileID: 819405259}
+  - component: {fileID: 819405258}
+  m_Layer: 5
+  m_Name: RawImage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &819405257
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819405256}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2126116046}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &819405258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819405256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 8400000, guid: ae1dbda82b2701e429800d394e326f08, type: 2}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &819405259
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819405256}
+  m_CullTransparentMesh: 1
 --- !u!1 &1208079124
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,6 +1740,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 819405257}
   - {fileID: 757469052}
   - {fileID: 488186642}
   m_Father: {fileID: 0}

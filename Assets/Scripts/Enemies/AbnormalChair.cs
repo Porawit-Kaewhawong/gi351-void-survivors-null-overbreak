@@ -20,11 +20,21 @@ public class AbnormalChair : EnemyBase
     [Tooltip("Check this only on the main spawner object placed in the scene.")]
     [SerializeField] private bool isSpawner = false;
 
-    [Tooltip("Number of chairs to spawn randomly across the map.")]
-    [SerializeField] private int spawnCount = 10;
+    [Tooltip("Base number of chairs to spawn at the reference map radius.")]
+    [SerializeField] private int baseSpawnCount = 10;
 
-    [Tooltip("Radius around the player to scatter the chairs.")]
-    [SerializeField] private float spawnRadius = 35f;
+    [Tooltip("Base reference map radius (in grid chunks) used for 1x scaling ratio.")]
+    [SerializeField] private float referenceMapRadius = 10f;
+
+    [Tooltip("If checked, scales count by total map area (Radius^2) to maintain constant density. If false, scales linearly with radius.")]
+    [SerializeField] private bool scaleByMapArea = false;
+
+    [Tooltip("Percentage of the total world map radius (0.1 to 1.0) across which chairs will scatter.")]
+    [Range(0.1f, 1.0f)]
+    [SerializeField] private float mapRadiusCoverage = 0.75f;
+
+    [Tooltip("Fallback scatter radius (in world units) if MapGenerator is not present.")]
+    [SerializeField] private float fallbackSpawnRadius = 35f;
 
     [Tooltip("Layer mask for the ground so chairs only spawn on valid floors.")]
     [SerializeField] private LayerMask groundLayer;
@@ -41,7 +51,6 @@ public class AbnormalChair : EnemyBase
 
     private void Start()
     {
-        // If this object is set as the spawner, it will generate chairs upon starting (when player spawns)
         if (isSpawner)
         {
             StartCoroutine(SpawnChairsRoutine());
@@ -58,43 +67,68 @@ public class AbnormalChair : EnemyBase
         }
     }
 
-    // --- AUTO SPAWN LOGIC ---
+    // --- DYNAMIC SCALED AUTO-SPAWN LOGIC ---
     private IEnumerator SpawnChairsRoutine()
     {
-        // Wait a brief moment to ensure the player is fully spawned and initialized in the scene
+        // Wait briefly for player and MapGenerator to finish initial placement
         yield return new WaitForSeconds(0.1f);
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         Vector3 centerPosition = playerObj != null ? playerObj.transform.position : Vector3.zero;
 
+        // 1. Calculate dynamic radius and count based on MapGenerator
+        float effectiveRadius = fallbackSpawnRadius;
+        int targetSpawnCount = baseSpawnCount;
+
+        if (MapGenerator.Instance != null)
+        {
+            float currentMapRadius = MapGenerator.Instance.mapRadius;
+            float chunkSize = MapGenerator.Instance.chunkSize;
+
+            // World-space map radius (e.g., 15 chunks * 50 chunkSize = 750 units)
+            float totalWorldRadius = currentMapRadius * chunkSize;
+            effectiveRadius = totalWorldRadius * mapRadiusCoverage;
+
+            // Scale count relative to reference radius ratio
+            float radiusRatio = currentMapRadius / Mathf.Max(1f, referenceMapRadius);
+
+            if (scaleByMapArea)
+            {
+                // Area scaling maintains physical density (chairs per square meter)
+                targetSpawnCount = Mathf.RoundToInt(baseSpawnCount * (radiusRatio * radiusRatio));
+            }
+            else
+            {
+                // Linear scaling
+                targetSpawnCount = Mathf.RoundToInt(baseSpawnCount * radiusRatio);
+            }
+
+            targetSpawnCount = Mathf.Max(1, targetSpawnCount);
+        }
+
+        // 2. Perform ground raycasting and spawning
         int spawnedCount = 0;
-        int maxAttempts = spawnCount * 3;
+        int maxAttempts = targetSpawnCount * 4;
         int attempts = 0;
 
-        while (spawnedCount < spawnCount && attempts < maxAttempts)
+        while (spawnedCount < targetSpawnCount && attempts < maxAttempts)
         {
             attempts++;
 
-            // Generate a random position within the radius
-            Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
+            Vector2 randomCircle = Random.insideUnitCircle * effectiveRadius;
             Vector3 randomPos = centerPosition + new Vector3(randomCircle.x, 0f, randomCircle.y);
 
-            // Raycast from high above straight down to find the ground
             Vector3 rayOrigin = randomPos + Vector3.up * 50f;
             if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 100f))
             {
-                // Check if it hits the specified ground layer (if groundLayer is set, otherwise accept any)
                 if (groundLayer == 0 || ((1 << hit.collider.gameObject.layer) & groundLayer) != 0)
                 {
-                    // Avoid spawning too close to the player's initial position
                     if (playerObj == null || Vector3.Distance(hit.point, playerObj.transform.position) > 4f)
                     {
                         GameObject prefabToUse = chairPrefab != null ? chairPrefab : gameObject;
 
-                        // Instantiate the chair at the ground hit point with a random Y rotation
-                        GameObject newChair = Instantiate(prefabToUse, hit.point + Vector3.up * 0.1f, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+                        GameObject newChair = Instantiate(prefabToUse, hit.point + Vector3.up * 2f, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
-                        // Disable spawner flag on the spawned copy to prevent infinite loops
                         AbnormalChair chairComponent = newChair.GetComponent<AbnormalChair>();
                         if (chairComponent != null)
                         {
@@ -107,9 +141,8 @@ public class AbnormalChair : EnemyBase
             }
         }
 
-        Debug.Log($"[AbnormalChair] Successfully spawned {spawnedCount} abnormal chairs on valid ground.");
+        Debug.Log($"[AbnormalChair] Map Radius: {(MapGenerator.Instance != null ? MapGenerator.Instance.mapRadius : 0)} | Spawned {spawnedCount}/{targetSpawnCount} chairs across {effectiveRadius:F1}m radius.");
 
-        // Destroy the master spawner object itself if it was just acting as a controller
         if (gameObject != null && isSpawner)
         {
             Destroy(gameObject);
@@ -155,7 +188,6 @@ public class AbnormalChair : EnemyBase
         if (playerRb != null)
         {
             StartCoroutine(SmoothPushRigidbodyRoutine(playerRb, bounceVelocity, pushDuration));
-            Debug.Log($"[{gameObject.name}] Smoothly bounced player via Rigidbody.");
             return;
         }
 
@@ -163,11 +195,8 @@ public class AbnormalChair : EnemyBase
         if (charController != null)
         {
             StartCoroutine(SmoothPushCharacterControllerRoutine(charController, bounceVelocity, pushDuration));
-            Debug.Log($"[{gameObject.name}] Smoothly bounced player via CharacterController.");
             return;
         }
-
-        Debug.LogWarning($"[{gameObject.name}] Player does not have a Rigidbody or CharacterController component.");
     }
 
     private IEnumerator SmoothPushRigidbodyRoutine(Rigidbody rb, Vector3 targetVelocity, float duration)

@@ -1,12 +1,9 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 public class PoorlyDrawnCharacterEnemy : EnemyBase
 {
     [Header("Movement Settings")]
-    [Tooltip("Speed at which the poorly-drawn character floats towards the player.")]
-    [SerializeField] private float moveSpeed = 2.5f;
-
     [Tooltip("Height offset to keep floating above the ground/player.")]
     [SerializeField] private float heightOffset = 2f;
 
@@ -90,7 +87,6 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
             lineRenderer = gameObject.AddComponent<LineRenderer>();
         }
 
-        
         lineRenderer.startWidth = 0.08f;
         lineRenderer.endWidth = 0.08f;
         lineRenderer.positionCount = 2;
@@ -106,17 +102,14 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
     {
         isTelegraphing = true;
 
-        
         if (lineRenderer != null) lineRenderer.enabled = true;
 
         float elapsed = 0f;
 
-        
         while (elapsed < telegraphDuration)
         {
             if (playerTransform == null) break;
 
-            
             if (lineRenderer != null)
             {
                 lineRenderer.SetPosition(0, transform.position + Vector3.up * 0.5f);
@@ -127,10 +120,8 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
             yield return null;
         }
 
-        
         if (lineRenderer != null) lineRenderer.enabled = false;
 
-       
         ThrowProjectile();
 
         isTelegraphing = false;
@@ -150,13 +141,11 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
         }
         else
         {
-            
             proj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             proj.transform.position = spawnPos;
             proj.transform.localScale = Vector3.one * 0.4f;
         }
 
-      
         Rigidbody rb = proj.GetComponent<Rigidbody>();
         if (rb == null)
         {
@@ -164,7 +153,6 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
         }
         rb.useGravity = true;
 
-       
         EnemyProjectile projScript = proj.GetComponent<EnemyProjectile>();
         if (projScript == null)
         {
@@ -172,42 +160,9 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
         }
         projScript.Initialize(attackDamage);
 
-        
         Vector3 throwDir = (playerTransform.position + Vector3.up * 0.5f - spawnPos).normalized;
         rb.AddForce(throwDir * throwForce + Vector3.up * 1.5f, ForceMode.Impulse);
 
-        Debug.Log($"[{gameObject.name}] Threw an item with a single red telegraph line!");
-    }
-}
-
-// ==========================================
-// SUB-CLASS: PROJECTILE CONTROLLER 
-// ==========================================
-public class EnemyProjectile : MonoBehaviour
-{
-    private float damage = 10f;
-
-    public void Initialize(float dmg)
-    {
-        damage = dmg;
-        
-        Destroy(gameObject, 4f);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            
-            Debug.Log("[EnemyProjectile] Hit the player!");
-        }
-        else
-        {
-            
-            Debug.Log("[EnemyProjectile] Missed and hit an obstacle, removing.");
-        }
-
-       
-        Destroy(gameObject);
+        Debug.Log($"[{gameObject.name}] Threw a projectile towards the player!");
     }
 }
