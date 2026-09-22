@@ -15,12 +15,32 @@ public enum StatType
     MaxShield
 }
 
+public enum EnemyStatType
+{
+    None,
+    ExtraEnemyCount,
+    MoveSpeed,
+    Health
+}
+
 public enum LobbySelectionType
 {
-    PlayerBuff = 0,
-    EnemySelection = 1,
-    EnemyBuff = 2,
-    LevelRule = 3
+    PlayerWeapon = 0,      // Level 1, 6, 11...
+    EnemySelection = 1, // Level 2, 7, 12...
+    PlayerBuff = 2,     // Level 3, 8, 13...
+    EnemyBuff = 3,      // Level 4, 9, 14...
+    LevelRule = 4    // Level 5, 10, 15...
+}
+
+public enum LevelRuleType
+{
+    None,
+    TiltedPlatforms, // Value = Max Angle of tilt
+    TiltedPlatform,  // Alias for singular lookup
+    LowerGravity,    // Value = % Reduction (e.g., 50 = -50% gravity)
+    RandomSpawn,     // Value = Enable toggle (1 = true)
+    JumpPad,         // Value = Number of jump pads to spawn
+    Round2           // Value = % Chance to trigger replay
 }
 
 // --- CLASS INHERITANCE FOR CLEAN INSPECTORS ---
@@ -48,12 +68,20 @@ public class PlayerBuffOption : LobbyOption
 }
 
 [System.Serializable]
+public class PlayerWeaponOption : LobbyOption
+{
+    [Header("Weapon Configuration")]
+    [Tooltip("Prefab containing the Auto-Attack Weapon script (e.g., Gun, Aura, Lightning Staff).")]
+    public GameObject weaponPrefab;
+}
+
+[System.Serializable]
 public class EnemySelectionOption : LobbyOption
 {
     [Header("Enemy Configuration")]
     public GameObject levelSpawnPrefab;
 
-    [Tooltip("Number of enemies spawned per selection. Stacks when selected multiple times.")]
+    [Tooltip("Base number of enemies spawned per selection.")]
     public int enemyCount = 1;
 }
 
@@ -61,14 +89,22 @@ public class EnemySelectionOption : LobbyOption
 public class EnemyBuffOption : LobbyOption
 {
     [Header("Enemy Buff Configuration")]
-    public float enemyStatMultiplier = 1f;
+    [Tooltip("Select which enemy stat this buff targets.")]
+    public EnemyStatType targetStat = EnemyStatType.None;
+
+    [Tooltip("Value bonus. Percentage for Health/Speed (e.g., 25 = +25%). Flat addition for ExtraEnemyCount (e.g., 2 = +2 enemies per group).")]
+    public float buffValue = 0f;
 }
 
 [System.Serializable]
 public class LevelRuleOption : LobbyOption
 {
     [Header("Level Rule Configuration")]
-    public string ruleType;
+    [Tooltip("Select the Level Rule rule type.")]
+    public LevelRuleType ruleType = LevelRuleType.None;
+
+    [Tooltip("Rule modifier parameter (e.g., 25 = 25% platform tilt, 50 = 50% gravity reduction).")]
+    public float ruleValue = 0f;
 }
 
 // --- MAIN GAME MANAGER ---
@@ -94,10 +130,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Enemy Spawning & Surface Settings")]
     [Tooltip("Preferred minimum distance from player start position.")]
-    public float minEnemySpawnDistance = 6f;
+    public float minEnemySpawnDistance = 12f;
 
     [Tooltip("Preferred maximum distance from player start position.")]
-    public float maxEnemySpawnDistance = 16f;
+    public float maxEnemySpawnDistance = 22f;
 
     [Tooltip("Select the Layer(s) used for ground/platforms. Set to 'Everything' or leave unassigned to check all colliders.")]
     public LayerMask groundLayer;
@@ -112,13 +148,15 @@ public class GameManager : MonoBehaviour
     public int currentLevel = 1;
 
     [Header("Option Pools")]
-    public List<PlayerBuffOption> playerBuffOptions = new List<PlayerBuffOption>();
+    public List<PlayerWeaponOption> playerWeaponOptions = new List<PlayerWeaponOption>();
     public List<EnemySelectionOption> enemySelectionOptions = new List<EnemySelectionOption>();
+    public List<PlayerBuffOption> playerBuffOptions = new List<PlayerBuffOption>();
     public List<EnemyBuffOption> enemyBuffOptions = new List<EnemyBuffOption>();
     public List<LevelRuleOption> levelRuleOptions = new List<LevelRuleOption>();
 
-    private int totalItems = 0;
-    private int collectedItems = 0;
+    public int TotalItems { get; private set; } = 0;
+    public int CollectedItems { get; private set; } = 0;
+
     private bool isFinished = false;
 
     private GameObject activeFinishPortal;
@@ -147,7 +185,7 @@ public class GameManager : MonoBehaviour
         UpdateUI();
     }
 
-    // --- STRONGLY-TYPED BUFF LOOKUP ---
+    // --- STRONGLY-TYPED MODIFIER LOOKUPS ---
 
     public float GetTotalBuffValue(StatType stat)
     {
@@ -164,12 +202,85 @@ public class GameManager : MonoBehaviour
         return totalPercent;
     }
 
+    public float GetTotalEnemyBuffValue(EnemyStatType stat)
+    {
+        float total = 0f;
+
+        foreach (var modifier in ActiveModifiers)
+        {
+            if (modifier is EnemyBuffOption buff && buff.targetStat == stat)
+            {
+                total += buff.buffValue;
+            }
+        }
+
+        return total;
+    }
+
+    public bool HasLevelRule(LevelRuleType rule)
+    {
+        foreach (var modifier in ActiveModifiers)
+        {
+            if (modifier is LevelRuleOption ruleOpt)
+            {
+                if (ruleOpt.ruleType == rule) return true;
+                if ((rule == LevelRuleType.TiltedPlatforms || rule == LevelRuleType.TiltedPlatform) &&
+                    (ruleOpt.ruleType == LevelRuleType.TiltedPlatforms || ruleOpt.ruleType == LevelRuleType.TiltedPlatform))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public float GetTotalLevelRuleValue(LevelRuleType rule)
+    {
+        float total = 0f;
+
+        foreach (var modifier in ActiveModifiers)
+        {
+            if (modifier is LevelRuleOption ruleOpt)
+            {
+                if (ruleOpt.ruleType == rule)
+                {
+                    total += ruleOpt.ruleValue;
+                }
+                else if ((rule == LevelRuleType.TiltedPlatforms || rule == LevelRuleType.TiltedPlatform) &&
+                         (ruleOpt.ruleType == LevelRuleType.TiltedPlatforms || ruleOpt.ruleType == LevelRuleType.TiltedPlatform))
+                {
+                    total += ruleOpt.ruleValue;
+                }
+            }
+        }
+
+        return total;
+    }
+
+    public bool HasLevelRule(string ruleName)
+    {
+        if (System.Enum.TryParse(ruleName, true, out LevelRuleType ruleType))
+        {
+            return HasLevelRule(ruleType);
+        }
+        return false;
+    }
+
+    public float GetTotalLevelRuleValue(string ruleName)
+    {
+        if (System.Enum.TryParse(ruleName, true, out LevelRuleType ruleType))
+        {
+            return GetTotalLevelRuleValue(ruleType);
+        }
+        return 0f;
+    }
+
     // --- ITEM & OBJECTIVE TRACKING ---
 
     public void ResetItemCount()
     {
-        totalItems = 0;
-        collectedItems = 0;
+        TotalItems = 0;
+        CollectedItems = 0;
         isFinished = false;
 
         if (activeFinishPortal != null)
@@ -183,13 +294,13 @@ public class GameManager : MonoBehaviour
 
     public void RegisterItem()
     {
-        totalItems++;
+        TotalItems++;
         UpdateUI();
     }
 
     public void UnregisterItem()
     {
-        totalItems = Mathf.Max(0, totalItems - 1);
+        TotalItems = Mathf.Max(0, TotalItems - 1);
         UpdateUI();
     }
 
@@ -197,10 +308,10 @@ public class GameManager : MonoBehaviour
     {
         if (isFinished) return;
 
-        collectedItems++;
+        CollectedItems++;
         UpdateUI();
 
-        if (totalItems > 0 && collectedItems >= totalItems)
+        if (TotalItems > 0 && CollectedItems >= TotalItems)
         {
             TriggerFinish();
         }
@@ -210,7 +321,7 @@ public class GameManager : MonoBehaviour
     {
         if (itemCounterText != null)
         {
-            itemCounterText.text = string.Format(displayFormat, collectedItems, totalItems);
+            itemCounterText.text = string.Format(displayFormat, CollectedItems, TotalItems);
         }
     }
 
@@ -231,7 +342,7 @@ public class GameManager : MonoBehaviour
 
     public LobbySelectionType GetSelectionTypeForLevel(int level)
     {
-        return (LobbySelectionType)((level - 1) % 4);
+        return (LobbySelectionType)((level - 1) % 5);
     }
 
     public void OpenLobbyForCurrentLevel()
@@ -273,8 +384,17 @@ public class GameManager : MonoBehaviour
     {
         if (chosenOption != null)
         {
-            ActiveModifiers.Add(chosenOption);
-            Debug.Log($"[GameManager] Selection Confirmed: '{chosenOption.title}'");
+            // Prevent duplicate registration if physics trigger fires twice in one frame
+            if (!ActiveModifiers.Contains(chosenOption))
+            {
+                ActiveModifiers.Add(chosenOption);
+                Debug.Log($"[GameManager] Selection Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
+            }
+            else
+            {
+                Debug.LogWarning($"[GameManager] Prevented duplicate trigger for '{chosenOption.title}'.");
+                return; // Exit early to avoid spawning double portals
+            }
         }
 
         ClearLobbyObjects();
@@ -299,6 +419,115 @@ public class GameManager : MonoBehaviour
 
     // --- LEVEL & PLAYER TRANSITIONS ---
 
+    private void EquipPlayerWeapons(Transform playerTransform)
+    {
+        if (playerTransform == null) return;
+
+        Transform weaponContainer = playerTransform.Find("WeaponContainer");
+        if (weaponContainer == null)
+        {
+            GameObject containerObj = new GameObject("WeaponContainer");
+            containerObj.transform.SetParent(playerTransform);
+            containerObj.transform.localPosition = Vector3.zero;
+            containerObj.transform.localRotation = Quaternion.identity;
+            weaponContainer = containerObj.transform;
+        }
+
+        foreach (Transform child in weaponContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (var modifier in ActiveModifiers)
+        {
+            if (modifier is PlayerWeaponOption weaponOpt && weaponOpt.weaponPrefab != null)
+            {
+                Instantiate(weaponOpt.weaponPrefab, weaponContainer);
+            }
+        }
+    }
+
+    private IEnumerator SpawnEnemiesRoutine(float delaySeconds, Vector3 spawnOrigin)
+    {
+        yield return new WaitForSeconds(delaySeconds);
+
+        List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
+        foreach (var modifier in ActiveModifiers)
+        {
+            if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
+            {
+                activeEnemyTypes.Add(enemyOpt);
+            }
+        }
+
+        if (activeEnemyTypes.Count == 0) yield break;
+
+        foreach (var enemyOpt in activeEnemyTypes)
+        {
+            for (int i = 0; i < enemyOpt.enemyCount; i++)
+            {
+                SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, spawnOrigin);
+            }
+        }
+
+        int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
+
+        for (int i = 0; i < extraEnemyCount; i++)
+        {
+            int randomIndex = Random.Range(0, activeEnemyTypes.Count);
+            GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
+
+            SpawnSingleEnemy(randomPrefab, spawnOrigin);
+        }
+
+        activeSpawnCoroutine = null;
+    }
+
+    private void SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
+    {
+        if (TryGetValidPlatformPosition(spawnOrigin, out Vector3 validSpawnPos))
+        {
+            GameObject spawnedEnemy = Instantiate(prefab, validSpawnPos, Quaternion.identity);
+            activeEnemies.Add(spawnedEnemy);
+        }
+        else
+        {
+            Vector3 fallbackPos = spawnOrigin + Vector3.up * 0.5f;
+            GameObject spawnedEnemy = Instantiate(prefab, fallbackPos, Quaternion.identity);
+            activeEnemies.Add(spawnedEnemy);
+        }
+    }
+
+    private bool TryGetValidPlatformPosition(Vector3 origin, out Vector3 validPosition)
+    {
+        int maxAttempts = 30;
+        int layerMaskToUse = (groundLayer.value == 0) ? ~0 : groundLayer.value;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+            float randomDistance = Random.Range(minEnemySpawnDistance, maxEnemySpawnDistance);
+
+            Vector3 targetXZ = origin + new Vector3(randomDirection.x * randomDistance, 0f, randomDirection.y * randomDistance);
+            Vector3 rayStartPoint = new Vector3(targetXZ.x, origin.y + raycastStartHeight, targetXZ.z);
+
+            if (Physics.Raycast(rayStartPoint, Vector3.down, out RaycastHit hit, maxRaycastDistance, layerMaskToUse, QueryTriggerInteraction.Ignore))
+            {
+                if (!hit.collider.isTrigger)
+                {
+                    validPosition = hit.point + Vector3.up * 0.5f;
+                    Debug.DrawRay(rayStartPoint, Vector3.down * hit.distance, Color.green, 5f);
+                    return true;
+                }
+            }
+
+            Debug.DrawRay(rayStartPoint, Vector3.down * maxRaycastDistance, Color.red, 2f);
+        }
+
+        validPosition = Vector3.zero;
+        return false;
+    }
+
     public void StartSelectedLevel()
     {
         ClearLobbyObjects();
@@ -315,14 +544,18 @@ public class GameManager : MonoBehaviour
             MapGenerator.Instance.GenerateMap();
             initialSpawnPosition = MapGenerator.Instance.StartChunkWorldPosition;
         }
-        else
-        {
-            Transform playerTransform = GameObject.FindWithTag("Player")?.transform;
-            if (playerTransform != null) initialSpawnPosition = playerTransform.position;
-        }
 
         PlayerController player = FindFirstObjectByType<PlayerController>();
-        if (player != null) player.ResetHealthAndShield();
+        if (player != null)
+        {
+            player.ResetHealthAndShield();
+            EquipPlayerWeapons(player.transform);
+        }
+
+        if (LevelRuleManager.Instance != null)
+        {
+            LevelRuleManager.Instance.ApplyActiveLevelRules();
+        }
 
         if (activeSpawnCoroutine != null)
         {
@@ -332,78 +565,15 @@ public class GameManager : MonoBehaviour
         activeSpawnCoroutine = StartCoroutine(SpawnEnemiesRoutine(3f, initialSpawnPosition));
     }
 
-    private IEnumerator SpawnEnemiesRoutine(float delaySeconds, Vector3 spawnOrigin)
-    {
-        yield return new WaitForSeconds(delaySeconds);
-
-        foreach (var modifier in ActiveModifiers)
-        {
-            if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
-            {
-                int countToSpawn = Mathf.Max(1, enemyOpt.enemyCount);
-
-                for (int i = 0; i < countToSpawn; i++)
-                {
-                    if (TryGetValidPlatformPosition(spawnOrigin, out Vector3 validSpawnPos))
-                    {
-                        GameObject spawnedEnemy = Instantiate(enemyOpt.levelSpawnPrefab, validSpawnPos, Quaternion.identity);
-                        activeEnemies.Add(spawnedEnemy);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[GameManager] Could not find platform for '{enemyOpt.title}'. Using fallback ground point directly at start origin.");
-                        Vector3 fallbackPos = spawnOrigin + Vector3.up * 0.5f;
-                        GameObject spawnedEnemy = Instantiate(enemyOpt.levelSpawnPrefab, fallbackPos, Quaternion.identity);
-                        activeEnemies.Add(spawnedEnemy);
-                    }
-                }
-            }
-        }
-
-        activeSpawnCoroutine = null;
-    }
-
-    /// <summary>
-    /// Scans for solid platform colliders using an adaptive search radius and raycasts.
-    /// </summary>
-    private bool TryGetValidPlatformPosition(Vector3 origin, out Vector3 validPosition)
-    {
-        int maxAttempts = 30;
-        int layerMaskToUse = (groundLayer.value == 0) ? ~0 : groundLayer.value;
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
-        {
-            Vector2 randomDirection = Random.insideUnitCircle.normalized;
-
-            // First 15 attempts try configured outer radius.
-            // Remaining attempts dynamically shrink search radius inwards towards origin to guarantee finding chunks.
-            float currentMin = (attempt < 15) ? minEnemySpawnDistance : 2f;
-            float currentMax = (attempt < 15) ? maxEnemySpawnDistance : Mathf.Max(5f, minEnemySpawnDistance);
-            float randomDistance = Random.Range(currentMin, currentMax);
-
-            Vector3 targetXZ = origin + new Vector3(randomDirection.x * randomDistance, 0f, randomDirection.y * randomDistance);
-            Vector3 rayStartPoint = new Vector3(targetXZ.x, origin.y + raycastStartHeight, targetXZ.z);
-
-            if (Physics.Raycast(rayStartPoint, Vector3.down, out RaycastHit hit, maxRaycastDistance, layerMaskToUse, QueryTriggerInteraction.Ignore))
-            {
-                // Ensure hit object is a solid surface (not a trigger)
-                if (!hit.collider.isTrigger)
-                {
-                    validPosition = hit.point + Vector3.up * 0.5f;
-                    Debug.DrawRay(rayStartPoint, Vector3.down * hit.distance, Color.green, 5f);
-                    return true;
-                }
-            }
-
-            Debug.DrawRay(rayStartPoint, Vector3.down * maxRaycastDistance, Color.red, 2f);
-        }
-
-        validPosition = Vector3.zero;
-        return false;
-    }
-
     public void OnLevelCompleted()
     {
+        if (LevelRuleManager.Instance != null && LevelRuleManager.Instance.CheckShouldRepeatLevelForRound2())
+        {
+            Debug.Log("[GameManager] Round 2 Active! Restarting current level without incrementing level index.");
+            StartSelectedLevel();
+            return;
+        }
+
         currentLevel++;
         ClearEnemies();
 
@@ -477,17 +647,31 @@ public class GameManager : MonoBehaviour
 
         switch (type)
         {
-            case LobbySelectionType.PlayerBuff:
-                sourcePool.AddRange(playerBuffOptions);
+            case LobbySelectionType.PlayerWeapon:
+                sourcePool.AddRange(playerWeaponOptions);
                 break;
+
             case LobbySelectionType.EnemySelection:
                 sourcePool.AddRange(enemySelectionOptions);
                 break;
+
+            case LobbySelectionType.PlayerBuff:
+                sourcePool.AddRange(playerBuffOptions);
+                break;
+
             case LobbySelectionType.EnemyBuff:
                 sourcePool.AddRange(enemyBuffOptions);
                 break;
+
             case LobbySelectionType.LevelRule:
-                sourcePool.AddRange(levelRuleOptions);
+                foreach (var rule in levelRuleOptions)
+                {
+                    bool alreadyChosen = ActiveModifiers.Exists(m => m is LevelRuleOption activeRule && activeRule.optionID == rule.optionID);
+                    if (!alreadyChosen)
+                    {
+                        sourcePool.Add(rule);
+                    }
+                }
                 break;
         }
 

@@ -1621,7 +1621,7 @@ GameObject:
   - component: {fileID: 2956694102390201952}
   m_Layer: 3
   m_Name: Cross Path
-  m_TagString: Untagged
+  m_TagString: Platform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

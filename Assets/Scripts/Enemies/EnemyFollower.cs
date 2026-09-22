@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class EnemyFollower : EnemyMovement
 {
@@ -34,7 +33,6 @@ public class EnemyFollower : EnemyMovement
         Vector3 direction = playerTransform.position - transform.position;
         direction.y = 0f;
 
-        // Use squared magnitude check for performance
         if (direction.sqrMagnitude <= attackDistance * attackDistance)
         {
             SlowDown();
@@ -48,7 +46,6 @@ public class EnemyFollower : EnemyMovement
     {
         if (playerController == null) return;
 
-        // Uses cached CharacterController on player from EnemyBase
         CharacterController cc = playerTransform.GetComponent<CharacterController>();
         if (cc != null && !cc.isGrounded)
         {

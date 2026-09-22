@@ -257,6 +257,7 @@ GameObject:
   - component: {fileID: 139717404}
   - component: {fileID: 139717406}
   - component: {fileID: 139717405}
+  - component: {fileID: 139717407}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -314,6 +315,8 @@ MonoBehaviour:
   itemPrefabs:
   - {fileID: 2243616081234245449, guid: b84686a12c55a394d84fa0e3347d6b49, type: 3}
   itemSpawnPointName: ItemSpawn
+  jumpPadPrefab: {fileID: 4563187368356963404, guid: 73cb4ea20e776534a9f14c9420cb0880, type: 3}
+  referenceMapRadius: 10
   useRandomSeed: 1
   seedOffset: 10000
   preventLoops: 1
@@ -350,6 +353,29 @@ MonoBehaviour:
   raycastStartHeight: 20
   maxRaycastDistance: 40
   currentLevel: 1
+  playerWeaponOptions:
+  - title: Gun
+    description: Shoot bullets at enemies
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: gun_weapon
+    weaponPrefab: {fileID: 524261273742113877, guid: 1edb9adf0db687a408a7e4fba87c2e8e, type: 3}
+  - title: Aura
+    description: Damage enemies inside its area
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: aura_weapon
+    weaponPrefab: {fileID: 6818991743236853697, guid: a80cf7cd23575524394cf21f74352c63, type: 3}
+  - title: Lighting
+    description: Strike AOE inside enemies
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: lighting_weapon
+    weaponPrefab: {fileID: 2738842398086761529, guid: 342f8bceb1257ed4faaa34014154a842, type: 3}
+  enemySelectionOptions:
+  - title: Follower
+    description: Follower will follow you forever.
+    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    optionID: enemy_follower
+    levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
+    enemyCount: 1
   playerBuffOptions:
   - title: Broken Running Shoes
     description: 'Base speed increases by 10%
@@ -465,25 +491,71 @@ MonoBehaviour:
     optionID: pickup_range
     targetStat: 3
     buffValue: 40
-  enemySelectionOptions:
-  - title: Follower
-    description: Follower will follow you forever.
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
-    optionID: enemy_follower
-    levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
-    enemyCount: 1
   enemyBuffOptions:
-  - title: Enemy Buff
-    description: Desc.
+  - title: Random Enemy Count Increase
+    description: Increase 1 random enemy
     prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
-    optionID: 
-    enemyStatMultiplier: 1
+    optionID: enemy_count
+    targetStat: 1
+    buffValue: 1
+  - title: Enemies Speed Boost
+    description: Increase enemies' speed boosts by 10%
+    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    optionID: enemy_speed
+    targetStat: 2
+    buffValue: 10
+  - title: Enemies Health Boost
+    description: Increase enemies' health boosts by 10%
+    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    optionID: enemy_health
+    targetStat: 3
+    buffValue: 10
   levelRuleOptions:
-  - title: Level Rule
-    description: Desc.
+  - title: Tilted Platforms
+    description: Tilted Platforms by 25%
     prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
-    optionID: 
-    ruleType: 
+    optionID: tilted_platform
+    ruleType: 1
+    ruleValue: 10
+  - title: Lower Gravity
+    description: Low Gravity by 50%
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: lower_gravity
+    ruleType: 2
+    ruleValue: 50
+  - title: Random Spawn
+    description: Player will spawn at randomize platform
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: random_spawn
+    ruleType: 3
+    ruleValue: 1
+  - title: Jump Pad
+    description: Spawn jump pads inside a level
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: jump_pad
+    ruleType: 5
+    ruleValue: 2
+  - title: Round 2
+    description: Entering the portal have 20% chance of palying round 2 of the same
+      level again
+    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    optionID: second_round
+    ruleType: 5
+    ruleValue: 20
+--- !u!114 &139717407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139717402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3e8316c917f7574fbc01b57655e1ed9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelRuleManager
+  jumpPadPrefab: {fileID: 4563187368356963404, guid: 73cb4ea20e776534a9f14c9420cb0880, type: 3}
+  baseGravity: {x: 0, y: -9.81, z: 0}
 --- !u!1 &145851546
 GameObject:
   m_ObjectHideFlags: 0

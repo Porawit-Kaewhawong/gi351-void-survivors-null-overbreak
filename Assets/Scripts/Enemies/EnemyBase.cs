@@ -6,6 +6,9 @@ public abstract class EnemyBase : MonoBehaviour
     public float maxHealth = 50f;
     public float CurrentHealth { get; protected set; }
 
+    [Header("Movement Settings")]
+    public float moveSpeed = 3.5f;
+
     [Header("Combat Settings")]
     public float attackDamage = 10f;
     public float attackRate = 1f; // Attacks per second
@@ -23,9 +26,17 @@ public abstract class EnemyBase : MonoBehaviour
     protected Vector3 spawnPosition;
     protected Quaternion spawnRotation;
 
+    // Cached base stats for scaling calculations
+    protected float baseMaxHealth;
+    protected float baseMoveSpeed;
+
     protected virtual void Awake()
     {
-        CurrentHealth = maxHealth;
+        baseMaxHealth = maxHealth;
+        baseMoveSpeed = moveSpeed;
+
+        ApplyEnemyBuffs();
+
         spawnPosition = transform.position;
         spawnRotation = transform.rotation;
         FindPlayer();
@@ -37,6 +48,25 @@ public abstract class EnemyBase : MonoBehaviour
         {
             attackCooldownTimer -= Time.deltaTime;
         }
+    }
+
+    /// <summary>
+    /// Reads active Enemy Buffs from GameManager and updates runtime stats.
+    /// </summary>
+    public virtual void ApplyEnemyBuffs()
+    {
+        if (GameManager.Instance != null)
+        {
+            // Health Boost (% bonus)
+            float healthPercent = GameManager.Instance.GetTotalEnemyBuffValue(EnemyStatType.Health);
+            maxHealth = baseMaxHealth * (1f + (healthPercent / 100f));
+
+            // Speed Boost (% bonus)
+            float speedPercent = GameManager.Instance.GetTotalEnemyBuffValue(EnemyStatType.MoveSpeed);
+            moveSpeed = baseMoveSpeed * (1f + (speedPercent / 100f));
+        }
+
+        CurrentHealth = maxHealth;
     }
 
     protected void FindPlayer()

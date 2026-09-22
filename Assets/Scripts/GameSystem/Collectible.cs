@@ -9,7 +9,7 @@ public class Collectible : MonoBehaviour
 
     private void Awake()
     {
-        Register();
+        Register(); // Fires IMMEDIATELY on Instantiate()
     }
 
     private void Start()
@@ -29,7 +29,6 @@ public class Collectible : MonoBehaviour
         float range = playerController != null ? playerController.CurrentPickupRadius : 2f;
         float distance = Vector3.Distance(transform.position, playerTransform.position);
 
-        // Move item toward player if inside magnetic pickup range
         if (distance <= range)
         {
             transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, 10f * Time.deltaTime);

@@ -3,8 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public abstract class EnemyMovement : EnemyBase
 {
-    [Header("Movement Settings")]
-    public float moveSpeed = 5f;
+    [Header("Movement Acceleration & Rotation")]
     public float acceleration = 12f;
     public float deceleration = 18f;
     public float rotationSpeed = 10f;
@@ -42,7 +41,7 @@ public abstract class EnemyMovement : EnemyBase
 
     protected override void Awake()
     {
-        base.Awake();
+        base.Awake(); // Triggers EnemyBase.Awake() to scale health/speed buffs
         controller = GetComponent<CharacterController>();
     }
 
@@ -74,6 +73,7 @@ public abstract class EnemyMovement : EnemyBase
             return;
         }
 
+        // Uses inherited moveSpeed from EnemyBase
         Vector3 targetVelocity = direction * moveSpeed;
         moveVelocity = Vector3.MoveTowards(moveVelocity, targetVelocity, acceleration * Time.deltaTime);
 
@@ -246,7 +246,6 @@ public abstract class EnemyMovement : EnemyBase
 
         for (int i = 0; i < maxPlatformSearchAttempts; i++)
         {
-            // Sample in a ring/donut around player instead of solid circle
             Vector2 randomDir = Random.insideUnitCircle.normalized;
             float randomDist = Random.Range(minRespawnRadius, maxRespawnRadius);
 

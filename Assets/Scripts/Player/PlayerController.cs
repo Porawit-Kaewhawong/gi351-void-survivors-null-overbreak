@@ -237,4 +237,15 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, CurrentPickupRadius);
     }
+
+    // --- JUMP PAD / LAUNCH API ---
+
+    /// <summary>
+    /// Sets vertical velocity directly, allowing Jump Pads or Launchers to override gravity.
+    /// </summary>
+    public void Bounce(float force)
+    {
+        velocity.y = force;
+        coyoteTimer = 0f;
+    }
 }
