@@ -12,7 +12,8 @@ public enum StatType
     MoveSpeed,
     JumpHeight,
     PickupRadius,
-    MaxShield
+    MaxShield,
+    ExtraJumps
 }
 
 public enum EnemyStatType
@@ -27,9 +28,9 @@ public enum LobbySelectionType
 {
     PlayerWeapon = 0,
     EnemySelection = 1,
-    PlayerBuff = 2,     // Level 3, 8, 13...
-    EnemyBuff = 3,      // Level 4, 9, 14...
-    LevelRule = 4       // Level 5, 10, 15...
+    PlayerBuff = 2,      // Level 3, 8, 13...
+    EnemyBuff = 3,       // Level 4, 9, 14...
+    LevelRule = 4        // Level 5, 10, 15...
 }
 
 public enum LevelRuleType
@@ -184,6 +185,8 @@ public class GameManager : MonoBehaviour
     public int CollectedItems { get; private set; } = 0;
 
     private bool isFinished = false;
+    private bool isProcessingSelection = false; // State guard against double triggers
+    private int currentLobbyPhase = 0;          // 0 = 1st selection, 1 = 2nd selection
 
     private GameObject activeFinishPortal;
     private GameObject activeStartPortal;
@@ -233,7 +236,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Avoid restarting if the requested track is already playing
         if (musicAudioSource.clip == musicClip && musicAudioSource.isPlaying)
         {
             return;
@@ -420,9 +422,12 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
+        currentLobbyPhase = 0; // Reset back to first choice
+        isProcessingSelection = false;
         PlayMusic(lobbyMusic);
         StopSpawningEnemies();
         ClearLobbyObjects();
+
         LobbySelectionType currentType = GetSelectionTypeForLevel(currentLevel);
         Spawn3DSelectionOptions(currentType);
     }
@@ -457,24 +462,74 @@ public class GameManager : MonoBehaviour
 
     public void ConfirmSelection(LobbyOption chosenOption, LobbySelectionType type)
     {
+        if (isProcessingSelection) return;
+        isProcessingSelection = true;
+
         if (chosenOption != null)
         {
-            // Prevent duplicate registration if physics trigger fires twice in one frame
-            if (!ActiveModifiers.Contains(chosenOption))
+            // Level Rules CANNOT stack. Prevent duplicates.
+            if (type == LobbySelectionType.LevelRule)
             {
-                ActiveModifiers.Add(chosenOption);
-                PlaySelectionSound();
-                Debug.Log($"[GameManager] Selection Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
+                bool ruleAlreadyActive = ActiveModifiers.Exists(m =>
+                    m is LevelRuleOption activeRule &&
+                    (!string.IsNullOrEmpty(chosenOption.optionID) ? activeRule.optionID == chosenOption.optionID : activeRule.title == chosenOption.title));
+
+                if (ruleAlreadyActive)
+                {
+                    Debug.LogWarning($"[GameManager] Level Rule '{chosenOption.title}' is already active and cannot stack.");
+                    isProcessingSelection = false;
+                    return;
+                }
             }
-            else
-            {
-                Debug.LogWarning($"[GameManager] Prevented duplicate trigger for '{chosenOption.title}'.");
-                return; // Exit early to avoid spawning double portals
-            }
+
+            ActiveModifiers.Add(chosenOption);
+            PlaySelectionSound();
+            Debug.Log($"[GameManager] Selection ({currentLobbyPhase + 1}/2) Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
         }
 
         ClearLobbyObjects();
-        Spawn3DStartPortal();
+
+        // Check if player needs to make the 2nd selection
+        if (currentLobbyPhase == 0)
+        {
+            currentLobbyPhase = 1;
+            isProcessingSelection = false; // Reset lock for the next choice
+
+            // Pick a random category excluding LevelRule
+            LobbySelectionType randomSecondaryType = GetRandomNonRuleSelectionType();
+            Spawn3DSelectionOptions(randomSecondaryType);
+        }
+        else
+        {
+            // Both selections are finished, spawn start portal
+            Spawn3DStartPortal();
+        }
+    }
+
+    private LobbySelectionType GetRandomNonRuleSelectionType()
+    {
+        List<LobbySelectionType> availableTypes = new List<LobbySelectionType>();
+
+        // Only include non-rule categories that actually have options configured
+        if (playerWeaponOptions != null && playerWeaponOptions.Count > 0)
+            availableTypes.Add(LobbySelectionType.PlayerWeapon);
+
+        if (enemySelectionOptions != null && enemySelectionOptions.Count > 0)
+            availableTypes.Add(LobbySelectionType.EnemySelection);
+
+        if (playerBuffOptions != null && playerBuffOptions.Count > 0)
+            availableTypes.Add(LobbySelectionType.PlayerBuff);
+
+        if (enemyBuffOptions != null && enemyBuffOptions.Count > 0)
+            availableTypes.Add(LobbySelectionType.EnemyBuff);
+
+        if (availableTypes.Count == 0)
+        {
+            // Safe fallback if pools are empty
+            return LobbySelectionType.PlayerBuff;
+        }
+
+        return availableTypes[Random.Range(0, availableTypes.Count)];
     }
 
     private void PlaySelectionSound()
@@ -535,12 +590,10 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ContinuousSpawnEnemiesRoutine(float interval)
     {
-        // Initial delay before the first wave spawns
         yield return new WaitForSeconds(1.5f);
 
         while (true)
         {
-            // Dynamically find current player position so enemies always spawn nearby as the player moves
             Vector3 currentSpawnOrigin = Vector3.zero;
             GameObject playerObj = GameObject.FindWithTag("Player");
 
@@ -553,7 +606,6 @@ public class GameManager : MonoBehaviour
                 currentSpawnOrigin = MapGenerator.Instance.StartChunkWorldPosition;
             }
 
-            // Collect all enemy selection modifiers active in the current run
             List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
             foreach (var modifier in ActiveModifiers)
             {
@@ -565,7 +617,6 @@ public class GameManager : MonoBehaviour
 
             if (activeEnemyTypes.Count > 0)
             {
-                // Spawn base enemy selection groups
                 foreach (var enemyOpt in activeEnemyTypes)
                 {
                     for (int i = 0; i < enemyOpt.enemyCount; i++)
@@ -574,7 +625,6 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Spawn bonus extra enemies based on enemy buff modifiers
                 int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
                 for (int i = 0; i < extraEnemyCount; i++)
                 {
@@ -606,7 +656,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Safe Fallback: Offset by minEnemySpawnDistance instead of spawning directly on the player
             Vector2 safeOffset = Random.insideUnitCircle.normalized * minEnemySpawnDistance;
             Vector3 fallbackPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
 
@@ -647,6 +696,7 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        isProcessingSelection = false;
         PlayMusic(inLevelMusic);
         ClearLobbyObjects();
 
@@ -672,7 +722,6 @@ public class GameManager : MonoBehaviour
             LevelRuleManager.Instance.ApplyActiveLevelRules();
         }
 
-        // Restart the continuous enemy spawning loop
         StopSpawningEnemies();
         activeSpawnCoroutine = StartCoroutine(ContinuousSpawnEnemiesRoutine(enemySpawnInterval));
     }
@@ -694,7 +743,11 @@ public class GameManager : MonoBehaviour
         if (MapGenerator.Instance != null)
         {
             MapGenerator.Instance.ClearMap();
-            MapGenerator.Instance.mapRadius++;
+
+            if (currentLevel % 2 == 0)
+            {
+                MapGenerator.Instance.mapRadius++;
+            }
         }
 
         if (lobbyEnvironmentRoot != null)
@@ -790,7 +843,9 @@ public class GameManager : MonoBehaviour
             case LobbySelectionType.LevelRule:
                 foreach (var rule in levelRuleOptions)
                 {
-                    bool alreadyChosen = ActiveModifiers.Exists(m => m is LevelRuleOption activeRule && activeRule.optionID == rule.optionID);
+                    bool alreadyChosen = ActiveModifiers.Exists(m => m is LevelRuleOption activeRule &&
+                        (!string.IsNullOrEmpty(rule.optionID) ? activeRule.optionID == rule.optionID : activeRule.title == rule.title));
+
                     if (!alreadyChosen)
                     {
                         sourcePool.Add(rule);

@@ -518,6 +518,22 @@ MonoBehaviour:
     optionID: pickup_range
     targetStat: 3
     buffValue: 40
+  - title: It's wings
+    description: 'Increase +1 extra jump
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: extra_jump
+    targetStat: 5
+    buffValue: 1
+  - title: It's MORE wings!!
+    description: 'Increase +2 extra jump
+
+'
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: extra_jump
+    targetStat: 5
+    buffValue: 2
   enemyBuffOptions:
   - title: Random Enemy Count Increase
     description: Increase 1 random enemy
@@ -561,7 +577,7 @@ MonoBehaviour:
     prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
     optionID: jump_pad
     ruleType: 5
-    ruleValue: 2
+    ruleValue: 4
   - title: Round 2
     description: Entering the portal have 20% chance of palying round 2 of the same
       level again
@@ -1203,6 +1219,53 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 549072131}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &718284413
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 718284415}
+  - component: {fileID: 718284414}
+  m_Layer: 0
+  m_Name: CheatMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &718284414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 718284413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dc2133141cf7804fae5514b0d73e11b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CheatMenu
+  toggleKey: 8
+  windowWidth: 400
+  windowHeight: 550
+--- !u!4 &718284415
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 718284413}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -1967,5 +2030,6 @@ SceneRoots:
   - {fileID: 549072134}
   - {fileID: 2126116046}
   - {fileID: 139717404}
+  - {fileID: 718284415}
   - {fileID: 420756535}
   - {fileID: 454154473}

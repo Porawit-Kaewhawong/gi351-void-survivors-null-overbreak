@@ -42,7 +42,15 @@ public class AbnormalChair : EnemyBase
     [Tooltip("Prefab of this chair to instantiate copies (leave empty to use this GameObject).")]
     [SerializeField] private GameObject chairPrefab;
 
+    [Header("Proximity & Auto Despawn Settings")]
+    [Tooltip("Radius around the player where the chair remains active.")]
+    [SerializeField] private float playerDetectionRange = 25f;
+
+    [Tooltip("Time in seconds out of player range before the chair automatically despawns.")]
+    [SerializeField] private float outOfRangeDespawnTime = 5f;
+
     private float pushTimer;
+    private float outOfRangeTimer;
 
     protected override void Awake()
     {
@@ -78,6 +86,50 @@ public class AbnormalChair : EnemyBase
         {
             pushTimer -= Time.deltaTime;
         }
+
+        // Only manage despawning on instantiated chairs, not the spawner template
+        if (!isSpawner)
+        {
+            HandleOutOfRangeDespawn();
+        }
+    }
+
+    // --- RANGE & AUTO-DESPAWN LOGIC ---
+    private void HandleOutOfRangeDespawn()
+    {
+        // Use inherited playerTransform from EnemyBase
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
+            else
+            {
+                return; // Pause timer if no player exists in scene yet
+            }
+        }
+
+        // Fast distance calculation using sqrMagnitude (saves CPU performance)
+        float sqrDistance = (transform.position - playerTransform.position).sqrMagnitude;
+        float sqrRange = playerDetectionRange * playerDetectionRange;
+
+        if (sqrDistance > sqrRange)
+        {
+            // Out of player range -> count down towards despawn
+            outOfRangeTimer += Time.deltaTime;
+
+            if (outOfRangeTimer >= outOfRangeDespawnTime)
+            {
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            // Player is in range -> reset timer to keep chair alive
+            outOfRangeTimer = 0f;
+        }
     }
 
     // --- DYNAMIC SCALED AUTO-SPAWN LOGIC ---
@@ -98,21 +150,17 @@ public class AbnormalChair : EnemyBase
             float currentMapRadius = MapGenerator.Instance.mapRadius;
             float chunkSize = MapGenerator.Instance.chunkSize;
 
-            // World-space map radius (e.g., 15 chunks * 50 chunkSize = 750 units)
             float totalWorldRadius = currentMapRadius * chunkSize;
             effectiveRadius = totalWorldRadius * mapRadiusCoverage;
 
-            // Scale count relative to reference radius ratio
             float radiusRatio = currentMapRadius / Mathf.Max(1f, referenceMapRadius);
 
             if (scaleByMapArea)
             {
-                // Area scaling maintains physical density (chairs per square meter)
                 targetSpawnCount = Mathf.RoundToInt(baseSpawnCount * (radiusRatio * radiusRatio));
             }
             else
             {
-                // Linear scaling
                 targetSpawnCount = Mathf.RoundToInt(baseSpawnCount * radiusRatio);
             }
 
@@ -148,7 +196,6 @@ public class AbnormalChair : EnemyBase
                             chairComponent.isSpawner = false;
                         }
 
-                        // Register the newly instantiated chair directly with GameManager
                         if (GameManager.Instance != null)
                         {
                             GameManager.Instance.RegisterEnemy(newChair);

@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AbnormalChair
   maxHealth: 30
   moveSpeed: 3.5
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1.2
   deathSound: {fileID: 8300000, guid: ef5ab71f95b2e964a9ac2011112fbeb3, type: 3}
@@ -69,6 +69,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   chairPrefab: {fileID: 2459689805982476572}
+  playerDetectionRange: 20
+  outOfRangeDespawnTime: 5
 --- !u!136 &8510674580393041121
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private float coyoteTime = 0.15f;
     private float coyoteTimer;
+    private int extraJumpsRemaining;
     private bool isDead = false;
 
     // --- STAT CALCULATIONS ---
@@ -73,7 +74,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Max Health: Fixed to base value (health buff options removed)
+    // Extra Jumps: Flat integer count from buffs
+    public int MaxExtraJumps
+    {
+        get
+        {
+            return GameManager.Instance != null
+                ? Mathf.FloorToInt(GameManager.Instance.GetTotalBuffValue(StatType.ExtraJumps))
+                : 0;
+        }
+    }
+
+    // Max Health: Fixed to base value
     public float CurrentMaxHealth => baseMaxHealth;
 
     // Max Shield: Flat additive numerical bonus
@@ -128,7 +140,6 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead || damage <= 0f) return;
 
-        // Shield absorbs incoming damage first
         if (CurrentShield > 0f)
         {
             float shieldDamage = Mathf.Min(CurrentShield, damage);
@@ -136,7 +147,6 @@ public class PlayerController : MonoBehaviour
             damage -= shieldDamage;
         }
 
-        // Remaining damage damages Health
         if (damage > 0f)
         {
             CurrentHealth -= damage;
@@ -190,6 +200,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded)
         {
             coyoteTimer = coyoteTime;
+            extraJumpsRemaining = MaxExtraJumps; // Reset available extra jumps when grounded
         }
         else
         {
@@ -224,10 +235,20 @@ public class PlayerController : MonoBehaviour
             velocity.y = -2f;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && coyoteTimer > 0f)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            velocity.y = Mathf.Sqrt(CurrentJumpHeight * -2f * gravity);
-            coyoteTimer = 0f;
+            if (coyoteTimer > 0f)
+            {
+                // Standard Ground Jump
+                velocity.y = Mathf.Sqrt(CurrentJumpHeight * -2f * gravity);
+                coyoteTimer = 0f;
+            }
+            else if (extraJumpsRemaining > 0)
+            {
+                // Mid-Air Double Jump
+                velocity.y = Mathf.Sqrt(CurrentJumpHeight * -2f * gravity);
+                extraJumpsRemaining--;
+            }
         }
     }
 
@@ -257,9 +278,6 @@ public class PlayerController : MonoBehaviour
 
     // --- JUMP PAD / LAUNCH API ---
 
-    /// <summary>
-    /// Sets vertical velocity directly, allowing Jump Pads or Launchers to override gravity.
-    /// </summary>
     public void Bounce(float force)
     {
         velocity.y = force;

@@ -139,7 +139,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PoorlyDrawnCharacterEnemy
   maxHealth: 20
   moveSpeed: 2.5
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1.2
   deathSound: {fileID: 8300000, guid: 20b64133d09efe047b8b023fe24bfae4, type: 3}

@@ -162,7 +162,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBalloon
   maxHealth: 25
   moveSpeed: 3
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1.2
   deathSound: {fileID: 8300000, guid: 25a5b7750c4b76f48b152755f1853c04, type: 3}

@@ -97,7 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFollower
   maxHealth: 75
   moveSpeed: 3.5
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1
   deathSound: {fileID: 8300000, guid: 3cd1ec097db20e642a1f3a802939cba3, type: 3}
