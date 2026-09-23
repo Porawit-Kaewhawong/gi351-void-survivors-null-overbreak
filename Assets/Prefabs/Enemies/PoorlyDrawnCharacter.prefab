@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8645967594407312901}
   - component: {fileID: 7829439396415331803}
-  - component: {fileID: 2254295194356591367}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -92,22 +91,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &2254295194356591367
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2822946395833684211}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b26cd72fcad610c42b16c0401b8349d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FacePlayer
-  player: {fileID: 0}
-  detectionRange: 10
-  rotationSpeed: 5
-  lockYAxis: 1
 --- !u!1 &5420205998641944471
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,17 +137,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eede386de65ac6c4393d683932774649, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PoorlyDrawnCharacterEnemy
-  maxHealth: 25
+  maxHealth: 20
   moveSpeed: 2.5
   attackDamage: 10
   attackRate: 1
   attackDistance: 1.2
+  deathSound: {fileID: 8300000, guid: 20b64133d09efe047b8b023fe24bfae4, type: 3}
+  deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
   heightOffset: 2
-  throwInterval: 3
+  attackRange: 5
+  throwInterval: 5
   telegraphDuration: 1
-  throwForce: 10
+  throwForce: 5
   projectilePrefab: {fileID: 5420205998641944471}
 --- !u!136 &6614709933751414428
 CapsuleCollider:

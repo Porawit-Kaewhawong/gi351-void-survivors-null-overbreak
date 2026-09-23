@@ -7,6 +7,10 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
     [Tooltip("Height offset to keep floating above the ground/player.")]
     [SerializeField] private float heightOffset = 2f;
 
+    [Header("Detection & Range Settings")]
+    [Tooltip("Maximum distance from the player to trigger telegraphing and throwing.")]
+    [SerializeField] private float attackRange = 15f;
+
     [Header("Throwing & Telegraph Settings")]
     [Tooltip("Time interval between each throw attack.")]
     [SerializeField] private float throwInterval = 3f;
@@ -47,9 +51,13 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
             FloatTowardsPlayer();
         }
 
-        // Handle throw cooldown and trigger attack sequence
+        // Calculate distance to the player
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        bool isInRange = distanceToPlayer <= attackRange;
+
+        // Handle throw cooldown and trigger attack sequence ONLY when player is in range
         throwTimer -= Time.deltaTime;
-        if (throwTimer <= 0f && !isTelegraphing)
+        if (throwTimer <= 0f && !isTelegraphing && isInRange)
         {
             StartCoroutine(TelegraphAndThrowRoutine());
             throwTimer = throwInterval;
@@ -164,5 +172,12 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
         rb.AddForce(throwDir * throwForce + Vector3.up * 1.5f, ForceMode.Impulse);
 
         Debug.Log($"[{gameObject.name}] Threw a projectile towards the player!");
+    }
+
+    // --- EDITOR GIZMO FOR ATTACK RANGE ---
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }

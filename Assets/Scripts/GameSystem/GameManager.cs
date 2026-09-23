@@ -113,6 +113,29 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [Header("Audio Settings")]
+    [Tooltip("Sound clip played when a lobby option selection is confirmed.")]
+    public AudioClip selectionSound;
+
+    [Range(0f, 1f)]
+    public float selectionVolume = 1f;
+
+    [Tooltip("Sound clip played when all items in a level are collected.")]
+    public AudioClip levelCompleteSound;
+
+    [Range(0f, 1f)]
+    public float levelCompleteVolume = 1f;
+
+    [Header("Background Music")]
+    [Tooltip("Music played while resting or selecting options in the lobby.")]
+    public AudioClip lobbyMusic;
+
+    [Tooltip("Music played while active inside a level.")]
+    public AudioClip inLevelMusic;
+
+    [Range(0f, 1f)]
+    public float musicVolume = 0.5f;
+
     [Header("UI & Objective Settings")]
     public TextMeshProUGUI itemCounterText;
     public string displayFormat = "Items: {0} / {1}";
@@ -165,6 +188,7 @@ public class GameManager : MonoBehaviour
     private GameObject activeFinishPortal;
     private GameObject activeStartPortal;
     private Coroutine activeSpawnCoroutine;
+    private AudioSource musicAudioSource;
 
     private readonly List<GameObject> activeSpawnedPedestals = new List<GameObject>();
     private readonly List<GameObject> activeEnemies = new List<GameObject>();
@@ -180,12 +204,44 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Setup dedicated music audio source
+        musicAudioSource = GetComponent<AudioSource>();
+        if (musicAudioSource == null)
+        {
+            musicAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+        musicAudioSource.loop = true;
+        musicAudioSource.playOnAwake = false;
     }
 
     private void Start()
     {
         OpenLobbyForCurrentLevel();
         UpdateUI();
+    }
+
+    // --- MUSIC CONTROLLER ---
+
+    public void PlayMusic(AudioClip musicClip)
+    {
+        if (musicAudioSource == null) return;
+
+        if (musicClip == null)
+        {
+            musicAudioSource.Stop();
+            return;
+        }
+
+        // Avoid restarting if the requested track is already playing
+        if (musicAudioSource.clip == musicClip && musicAudioSource.isPlaying)
+        {
+            return;
+        }
+
+        musicAudioSource.clip = musicClip;
+        musicAudioSource.volume = musicVolume;
+        musicAudioSource.Play();
     }
 
     // --- STRONGLY-TYPED MODIFIER LOOKUPS ---
@@ -333,11 +389,25 @@ public class GameManager : MonoBehaviour
         if (isFinished) return;
         isFinished = true;
 
+        PlayLevelCompleteSound();
+
         if (finishPortalPrefab != null && MapGenerator.Instance != null && activeFinishPortal == null)
         {
             Vector3 spawnPosition = MapGenerator.Instance.StartChunkWorldPosition + finishOffsetAboveStart;
             activeFinishPortal = Instantiate(finishPortalPrefab, spawnPosition, Quaternion.identity);
             Debug.Log("[GameManager] Level Complete! Finish Portal spawned.");
+        }
+    }
+
+    private void PlayLevelCompleteSound()
+    {
+        if (levelCompleteSound != null)
+        {
+            AudioSource.PlayClipAtPoint(
+                levelCompleteSound,
+                Camera.main != null ? Camera.main.transform.position : transform.position,
+                levelCompleteVolume
+            );
         }
     }
 
@@ -350,6 +420,7 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
+        PlayMusic(lobbyMusic);
         StopSpawningEnemies();
         ClearLobbyObjects();
         LobbySelectionType currentType = GetSelectionTypeForLevel(currentLevel);
@@ -392,6 +463,7 @@ public class GameManager : MonoBehaviour
             if (!ActiveModifiers.Contains(chosenOption))
             {
                 ActiveModifiers.Add(chosenOption);
+                PlaySelectionSound();
                 Debug.Log($"[GameManager] Selection Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
             }
             else
@@ -403,6 +475,14 @@ public class GameManager : MonoBehaviour
 
         ClearLobbyObjects();
         Spawn3DStartPortal();
+    }
+
+    private void PlaySelectionSound()
+    {
+        if (selectionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(selectionSound, Camera.main != null ? Camera.main.transform.position : transform.position, selectionVolume);
+        }
     }
 
     private void Spawn3DStartPortal()
@@ -522,7 +602,7 @@ public class GameManager : MonoBehaviour
         if (TryGetValidPlatformPosition(spawnOrigin, out Vector3 validSpawnPos))
         {
             GameObject spawnedEnemy = Instantiate(prefab, validSpawnPos, Quaternion.identity);
-            activeEnemies.Add(spawnedEnemy);
+            RegisterEnemy(spawnedEnemy);
         }
         else
         {
@@ -531,7 +611,7 @@ public class GameManager : MonoBehaviour
             Vector3 fallbackPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
 
             GameObject spawnedEnemy = Instantiate(prefab, fallbackPos, Quaternion.identity);
-            activeEnemies.Add(spawnedEnemy);
+            RegisterEnemy(spawnedEnemy);
         }
     }
 
@@ -567,6 +647,7 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        PlayMusic(inLevelMusic);
         ClearLobbyObjects();
 
         if (lobbyEnvironmentRoot != null)
@@ -628,6 +709,16 @@ public class GameManager : MonoBehaviour
     public void OnPlayerDied()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // --- ENEMY REGISTRATION & CLEANUP ---
+
+    public void RegisterEnemy(GameObject enemy)
+    {
+        if (enemy != null && !activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Add(enemy);
+        }
     }
 
     private void ClearEnemies()

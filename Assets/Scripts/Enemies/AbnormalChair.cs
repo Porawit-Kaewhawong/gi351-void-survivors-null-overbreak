@@ -55,6 +55,19 @@ public class AbnormalChair : EnemyBase
         {
             StartCoroutine(SpawnChairsRoutine());
         }
+        else
+        {
+            // Auto-register non-spawner chairs with GameManager for cleanup on level transitions
+            RegisterWithGameManager();
+        }
+    }
+
+    private void RegisterWithGameManager()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RegisterEnemy(gameObject);
+        }
     }
 
     protected override void Update()
@@ -127,12 +140,18 @@ public class AbnormalChair : EnemyBase
                     {
                         GameObject prefabToUse = chairPrefab != null ? chairPrefab : gameObject;
 
-                        GameObject newChair = Instantiate(prefabToUse, hit.point + Vector3.up * 2f, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+                        GameObject newChair = Instantiate(prefabToUse, hit.point + Vector3.up * 0.75f, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
                         AbnormalChair chairComponent = newChair.GetComponent<AbnormalChair>();
                         if (chairComponent != null)
                         {
                             chairComponent.isSpawner = false;
+                        }
+
+                        // Register the newly instantiated chair directly with GameManager
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.RegisterEnemy(newChair);
                         }
 
                         spawnedCount++;

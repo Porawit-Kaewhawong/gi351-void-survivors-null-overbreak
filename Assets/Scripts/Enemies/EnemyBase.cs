@@ -14,6 +14,13 @@ public abstract class EnemyBase : MonoBehaviour
     public float attackRate = 1f; // Attacks per second
     public float attackDistance = 1.2f;
 
+    [Header("Audio Settings")]
+    [Tooltip("Sound clip played when this enemy dies.")]
+    public AudioClip deathSound;
+
+    [Range(0f, 1f)]
+    public float deathSoundVolume = 1f;
+
     [Header("Targeting")]
     protected Transform playerTransform;
     protected PlayerController playerController;
@@ -99,6 +106,12 @@ public abstract class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         Debug.Log($"[{gameObject.name}] Died.");
+
+        if (deathSound != null)
+        {
+            AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
+        }
+
         Destroy(gameObject);
     }
 

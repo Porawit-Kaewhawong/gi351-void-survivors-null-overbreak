@@ -44,6 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fff5e466fe977e42bfb8af09897cb7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuraWeapon
-  damage: 15
-  attackRange: 5
+  damage: 7.5
+  attackRange: 3
   attackInterval: 1
+  attackSound: {fileID: 8300000, guid: 00a12242caaf6ef4cb353b0765f20569, type: 3}
+  soundVolume: 1
+  randomizePitch: 1
+  auraColor: {r: 1, g: 1, b: 1, a: 0.5372549}

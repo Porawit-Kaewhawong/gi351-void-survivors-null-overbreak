@@ -5,12 +5,19 @@ public class JumpPad : MonoBehaviour
     [Header("Jump Pad Forces")]
     public float jumpForce = 18f;
 
-    [Header("Audio & FX (Optional)")]
+    [Header("Audio & FX")]
+    [Tooltip("Sound clip played when the player or an object lands on the jump pad.")]
     public AudioClip launchSound;
+
+    [Range(0f, 1f)]
+    [Tooltip("Volume of the launch sound.")]
+    public float soundVolume = 1f;
+
     private AudioSource audioSource;
 
     private void Awake()
     {
+        // Try to get an attached AudioSource component on startup
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -44,9 +51,17 @@ public class JumpPad : MonoBehaviour
 
     private void PlayLaunchEffect()
     {
-        if (audioSource != null && launchSound != null)
+        if (launchSound == null) return;
+
+        // Method A: Use attached AudioSource if available
+        if (audioSource != null)
         {
-            audioSource.PlayOneShot(launchSound);
+            audioSource.PlayOneShot(launchSound, soundVolume);
+        }
+        // Method B: Fallback spatial 3D audio playback at the JumpPad position
+        else
+        {
+            AudioSource.PlayClipAtPoint(launchSound, transform.position, soundVolume);
         }
     }
 }

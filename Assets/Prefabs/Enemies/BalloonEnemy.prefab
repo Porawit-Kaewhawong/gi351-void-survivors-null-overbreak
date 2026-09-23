@@ -160,11 +160,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b777fe26cfba2a458a1b82083d9df7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBalloon
-  maxHealth: 30
+  maxHealth: 25
   moveSpeed: 3
   attackDamage: 10
   attackRate: 1
   attackDistance: 1.2
+  deathSound: {fileID: 8300000, guid: 25a5b7750c4b76f48b152755f1853c04, type: 3}
+  deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
   heightOffset: 1.5

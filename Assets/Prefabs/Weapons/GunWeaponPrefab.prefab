@@ -45,6 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunWeapon
   damage: 15
-  attackRange: 12
+  attackRange: 9
   attackInterval: 1
+  attackSound: {fileID: 8300000, guid: c05512b7271a94d44876aec9c567f58e, type: 3}
+  soundVolume: 1
+  randomizePitch: 1
   tracerPrefab: {fileID: 0}
+  tracerColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

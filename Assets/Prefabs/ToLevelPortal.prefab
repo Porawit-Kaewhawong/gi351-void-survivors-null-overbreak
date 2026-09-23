@@ -125,3 +125,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbae6087dd39c814ba397f782b35e918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Lobby3DStartPortal
+  playerTag: Player
+  portalSound: {fileID: 8300000, guid: 4db00fb5b2ec44e4ba89d6aa0a66b667, type: 3}
+  soundVolume: 1

@@ -46,11 +46,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c9a48e8da8f89644a27c7ba8a953f25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbnormalChair
-  maxHealth: 50
+  maxHealth: 30
   moveSpeed: 3.5
   attackDamage: 10
   attackRate: 1
   attackDistance: 1.2
+  deathSound: {fileID: 8300000, guid: ef5ab71f95b2e964a9ac2011112fbeb3, type: 3}
+  deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
   pushForce: 15
@@ -60,7 +62,7 @@ MonoBehaviour:
   isSpawner: 1
   baseSpawnCount: 10
   referenceMapRadius: 10
-  scaleByMapArea: 0
+  scaleByMapArea: 1
   mapRadiusCoverage: 0.75
   fallbackSpawnRadius: 35
   groundLayer:
@@ -87,7 +89,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 4
+  m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2811605642423428451
@@ -117,8 +119,8 @@ Transform:
   m_GameObject: {fileID: 2811605642423428451}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.288, y: 0.124, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalPosition: {x: -0.288, y: -0.141, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7801882779596812989}
@@ -172,7 +174,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 20abd950abe66304092decca31cd5cc6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a7755ab162a54b34ea5a53137ec9e9ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

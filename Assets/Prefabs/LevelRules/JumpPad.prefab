@@ -126,4 +126,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JumpPad
   jumpForce: 18
-  launchSound: {fileID: 0}
+  launchSound: {fileID: 8300000, guid: b8c45ea43763ec54b8e204e806bcafcf, type: 3}
+  soundVolume: 1
