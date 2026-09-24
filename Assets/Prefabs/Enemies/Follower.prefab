@@ -99,7 +99,7 @@ MonoBehaviour:
   moveSpeed: 3.5
   attackDamage: 1
   attackRate: 1
-  attackDistance: 1
+  attackDistance: 1.25
   deathSound: {fileID: 8300000, guid: 3cd1ec097db20e642a1f3a802939cba3, type: 3}
   deathSoundVolume: 1
   destroyOnFall: 1
@@ -107,17 +107,21 @@ MonoBehaviour:
   acceleration: 12
   deceleration: 18
   rotationSpeed: 10
+  rotateTowardsMovement: 1
   jumpHeight: 2.5
   gravity: -20
   maxJumpDistance: 3
   jumpCheckHeight: 5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   respawnDelay: 0.5
   minRespawnRadius: 12
   maxRespawnRadius: 22
   maxPlatformSearchAttempts: 15
+  voidYThreshold: -10
+  minRescueRadius: 6
+  maxRescueRadius: 18
 --- !u!1 &3116921151808610500
 GameObject:
   m_ObjectHideFlags: 0
@@ -222,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b26cd72fcad610c42b16c0401b8349d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FacePlayer
-  player: {fileID: 0}
-  detectionRange: 10
+  billboardType: 0
+  mainCamera: {fileID: 0}
+  lockYAxis: 0
   rotationSpeed: 5
-  lockYAxis: 1

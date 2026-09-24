@@ -45,7 +45,7 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
             return;
         }
 
-        // Float and follow the player smoothly through walls (only if not currently telegraphing)
+        // Float and follow the player smoothly (only if not currently telegraphing)
         if (!isTelegraphing)
         {
             FloatTowardsPlayer();
@@ -73,17 +73,8 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
         float bobbing = Mathf.Sin(Time.time * 3f) * 0.3f;
         targetPosition.y += bobbing;
 
-        // Move directly through walls towards the player
+        // Move directly towards the player
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-
-        // Face towards the player horizontally
-        Vector3 direction = playerTransform.position - transform.position;
-        direction.y = 0f;
-        if (direction != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-        }
     }
 
     // --- SETUP SINGLE RED LINE RENDERER ---
@@ -140,7 +131,12 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
     {
         if (playerTransform == null) return;
 
-        Vector3 spawnPos = transform.position + transform.forward * 0.5f + Vector3.up * 0.5f;
+        // Calculate direct offset towards player, ignoring FaceCamera rotation
+        Vector3 dirToPlayer = (playerTransform.position - transform.position);
+        dirToPlayer.y = 0f;
+        dirToPlayer.Normalize();
+
+        Vector3 spawnPos = transform.position + dirToPlayer * 0.6f + Vector3.up * 0.5f;
         GameObject proj;
 
         if (projectilePrefab != null)
@@ -152,6 +148,14 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
             proj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             proj.transform.position = spawnPos;
             proj.transform.localScale = Vector3.one * 0.4f;
+        }
+
+        // Prevent projectile from colliding with the enemy itself
+        Collider enemyCollider = GetComponent<Collider>();
+        Collider projCollider = proj.GetComponent<Collider>();
+        if (enemyCollider != null && projCollider != null)
+        {
+            Physics.IgnoreCollision(enemyCollider, projCollider);
         }
 
         Rigidbody rb = proj.GetComponent<Rigidbody>();

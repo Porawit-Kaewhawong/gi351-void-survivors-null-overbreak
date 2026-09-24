@@ -104,7 +104,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6441239035913449903}
   - component: {fileID: 3393440890874921215}
-  - component: {fileID: 1608520722583361522}
+  - component: {fileID: 8859095976334806734}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -186,7 +186,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &1608520722583361522
+--- !u!114 &8859095976334806734
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -197,8 +197,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b26cd72fcad610c42b16c0401b8349d2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FacePlayer
-  player: {fileID: 0}
-  detectionRange: 10
-  rotationSpeed: 5
-  lockYAxis: 1
+  m_EditorClassIdentifier: Assembly-CSharp::FaceCamera
+  billboardType: 0
+  mainCamera: {fileID: 0}
+  lockYAxis: 0
+  rotationSpeed: 10

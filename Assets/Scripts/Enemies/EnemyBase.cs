@@ -57,18 +57,13 @@ public abstract class EnemyBase : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Reads active Enemy Buffs from GameManager and updates runtime stats.
-    /// </summary>
     public virtual void ApplyEnemyBuffs()
     {
         if (GameManager.Instance != null)
         {
-            // Health Boost (% bonus)
             float healthPercent = GameManager.Instance.GetTotalEnemyBuffValue(EnemyStatType.Health);
             maxHealth = baseMaxHealth * (1f + (healthPercent / 100f));
 
-            // Speed Boost (% bonus)
             float speedPercent = GameManager.Instance.GetTotalEnemyBuffValue(EnemyStatType.MoveSpeed);
             moveSpeed = baseMoveSpeed * (1f + (speedPercent / 100f));
         }
@@ -78,13 +73,20 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected void FindPlayer()
     {
-        if (playerTransform != null) return;
-
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
+        if (playerTransform == null)
         {
-            playerTransform = playerObj.transform;
-            playerController = playerObj.GetComponent<PlayerController>();
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
+        }
+
+        if (playerTransform != null && playerController == null)
+        {
+            playerController = playerTransform.GetComponent<PlayerController>()
+                ?? playerTransform.GetComponentInParent<PlayerController>()
+                ?? playerTransform.GetComponentInChildren<PlayerController>();
         }
     }
 
@@ -119,7 +121,11 @@ public abstract class EnemyBase : MonoBehaviour
     {
         if (playerController == null || attackCooldownTimer > 0f) return false;
 
-        float sqrDistance = (playerTransform.position - transform.position).sqrMagnitude;
+        // Use horizontal distance so height difference doesn't block attacks
+        Vector3 direction = playerTransform.position - transform.position;
+        direction.y = 0f;
+
+        float sqrDistance = direction.sqrMagnitude;
         float sqrAttackDist = attackDistance * attackDistance;
 
         if (sqrDistance <= sqrAttackDist)

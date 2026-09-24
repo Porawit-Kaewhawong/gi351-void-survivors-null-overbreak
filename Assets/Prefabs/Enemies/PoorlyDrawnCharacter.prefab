@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8645967594407312901}
   - component: {fileID: 7829439396415331803}
+  - component: {fileID: 8382876856590864153}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -91,6 +92,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &8382876856590864153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2822946395833684211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b26cd72fcad610c42b16c0401b8349d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FaceCamera
+  billboardType: 0
+  mainCamera: {fileID: 0}
+  lockYAxis: 0
+  rotationSpeed: 10
 --- !u!1 &5420205998641944471
 GameObject:
   m_ObjectHideFlags: 0

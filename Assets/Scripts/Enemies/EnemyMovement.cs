@@ -8,6 +8,9 @@ public abstract class EnemyMovement : EnemyBase
     public float deceleration = 18f;
     public float rotationSpeed = 10f;
 
+    [Tooltip("Disable if using FaceCamera or 2D billboard sprites on this enemy.")]
+    public bool rotateTowardsMovement = true;
+
     [Header("Jump Settings")]
     public float jumpHeight = 2.5f;
     public float gravity = -20f;
@@ -15,18 +18,13 @@ public abstract class EnemyMovement : EnemyBase
     public float jumpCheckHeight = 5f;
 
     [Header("Ground & Collision")]
-    [Tooltip("Select the layer(s) for ground/platforms. Set to 'Everything' or leave unassigned to check all surfaces.")]
+    [Tooltip("Select the layer(s) for ground/platforms.")]
     public LayerMask groundLayer;
 
     [Header("Respawn Settings")]
     public float respawnDelay = 0.5f;
-
-    [Tooltip("Minimum safe distance from the player when respawning.")]
     public float minRespawnRadius = 12f;
-
-    [Tooltip("Maximum distance from the player when respawning.")]
     public float maxRespawnRadius = 22f;
-
     public int maxPlatformSearchAttempts = 15;
 
     protected CharacterController controller;
@@ -41,8 +39,14 @@ public abstract class EnemyMovement : EnemyBase
 
     protected override void Awake()
     {
-        base.Awake(); // Triggers EnemyBase.Awake() to scale health/speed buffs
+        base.Awake();
         controller = GetComponent<CharacterController>();
+
+        // Check using generic type parameter
+        if (GetComponent<FaceCamera>() != null || GetComponentInChildren<FaceCamera>() != null)
+        {
+            rotateTowardsMovement = false;
+        }
     }
 
     protected override void Update()
@@ -73,7 +77,6 @@ public abstract class EnemyMovement : EnemyBase
             return;
         }
 
-        // Uses inherited moveSpeed from EnemyBase
         Vector3 targetVelocity = direction * moveSpeed;
         moveVelocity = Vector3.MoveTowards(moveVelocity, targetVelocity, acceleration * Time.deltaTime);
 
@@ -177,7 +180,7 @@ public abstract class EnemyMovement : EnemyBase
 
     protected void RotateSmoothly(Vector3 direction)
     {
-        if (direction.sqrMagnitude < 0.01f) return;
+        if (!rotateTowardsMovement || direction.sqrMagnitude < 0.01f) return;
 
         Quaternion targetRotation = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);

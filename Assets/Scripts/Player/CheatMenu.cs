@@ -184,12 +184,19 @@ public class CheatMenu : MonoBehaviour
         }
 
         GUILayout.Space(15);
-        GUILayout.Label("<b>Player Buff Options (Stackable)</b>", richTextStyle);
-        foreach (var buff in GameManager.Instance.playerBuffOptions)
+        GUILayout.Label("<b>Player Buff Options (Respects Sequential Tiers)</b>", richTextStyle);
+
+        // Fetch valid pool using GameManager logic (fetches current tier available)
+        List<LobbyOption> validBuffPool = GameManager.Instance.FetchOptionPoolForType(LobbySelectionType.PlayerBuff);
+
+        foreach (var option in validBuffPool)
         {
-            if (GUILayout.Button($"Apply: {buff.title} (+{buff.buffValue}% {buff.targetStat})"))
+            if (option is PlayerBuffOption buff)
             {
-                ApplyModifierDirectly(buff);
+                if (GUILayout.Button($"Apply Next Tier: {buff.title} (+{buff.buffValue}% {buff.targetStat})"))
+                {
+                    ApplyModifierDirectly(buff);
+                }
             }
         }
     }
@@ -261,16 +268,13 @@ public class CheatMenu : MonoBehaviour
         {
             int simulatedLevel = startLevel + i;
 
-            // 1st Selection: Standard Level Rotation (0: Weapon, 1: Enemy, 2: PlayerBuff, 3: EnemyBuff, 4: LevelRule)
-            int primaryCategory = (simulatedLevel - 1) % 5;
-            if (primaryCategory < 0) primaryCategory += 5;
+            // 1st Selection: Standard Level Rotation
+            LobbySelectionType primaryType = GameManager.Instance.GetSelectionTypeForLevel(simulatedLevel);
+            ApplyRandomFromType(primaryType);
 
-            ApplyRandomFromCategory(primaryCategory, allowLevelRules: true);
-
-            // 2nd Selection: Random Category (0 to 3 ONLY -> excludes Level Rules)
-            int randomCategory = Random.Range(0, 4);
-
-            ApplyRandomFromCategory(randomCategory, allowLevelRules: false);
+            // 2nd Selection: Random Non-Rule Category
+            LobbySelectionType secondaryType = (LobbySelectionType)Random.Range(0, 4);
+            ApplyRandomFromType(secondaryType);
         }
 
         // Apply rules to active gameplay environment if outside lobby
@@ -289,77 +293,15 @@ public class CheatMenu : MonoBehaviour
         Debug.Log($"[CheatMenu] Simulated {levelCount} levels with 2 choices per level.");
     }
 
-    private void ApplyRandomFromCategory(int categoryIndex, bool allowLevelRules)
+    private void ApplyRandomFromType(LobbySelectionType selectionType)
     {
-        switch (categoryIndex)
-        {
-            case 0: // Weapon
-                AddRandomFromPool(GameManager.Instance.playerWeaponOptions, "Weapons");
-                break;
+        // Fetch pool using GameManager to enforce tier progression, unique IDs, and rule checks
+        List<LobbyOption> pool = GameManager.Instance.FetchOptionPoolForType(selectionType);
 
-            case 1: // Enemy
-                AddRandomFromPool(GameManager.Instance.enemySelectionOptions, "Enemies");
-                break;
-
-            case 2: // Player Buff
-                AddRandomFromPool(GameManager.Instance.playerBuffOptions, "Player Buffs");
-                break;
-
-            case 3: // Enemy Buff
-                AddRandomFromPool(GameManager.Instance.enemyBuffOptions, "Enemy Buffs");
-                break;
-
-            case 4: // Level Rule
-                if (allowLevelRules)
-                {
-                    AddRandomRulesFromPool(GameManager.Instance.levelRuleOptions, 1);
-                }
-                break;
-        }
-    }
-
-    private void AddRandomFromPool<T>(List<T> pool, string poolName) where T : LobbyOption
-    {
-        if (pool == null || pool.Count == 0)
-        {
-            Debug.LogWarning($"[CheatMenu] Skipping '{poolName}' selection: Pool is empty in GameManager.");
-            return;
-        }
+        if (pool == null || pool.Count == 0) return;
 
         int randomIndex = Random.Range(0, pool.Count);
         ApplyModifierDirectly(pool[randomIndex]);
-    }
-
-    private void AddRandomRulesFromPool(List<LevelRuleOption> rulePool, int count)
-    {
-        if (rulePool == null || rulePool.Count == 0 || count <= 0) return;
-
-        List<LevelRuleOption> availableRules = new List<LevelRuleOption>();
-        foreach (var rule in rulePool)
-        {
-            bool active = GameManager.Instance.ActiveModifiers.Exists(m =>
-                m is LevelRuleOption activeRule &&
-                (!string.IsNullOrEmpty(rule.optionID) ? activeRule.optionID == rule.optionID : activeRule.title == rule.title));
-
-            if (!active)
-            {
-                availableRules.Add(rule);
-            }
-        }
-
-        if (availableRules.Count == 0)
-        {
-            Debug.LogWarning("[CheatMenu] All Level Rules are already active. Skipping rule pick.");
-            return;
-        }
-
-        int pickCount = Mathf.Min(count, availableRules.Count);
-        for (int i = 0; i < pickCount; i++)
-        {
-            int randomIndex = Random.Range(0, availableRules.Count);
-            ApplyModifierDirectly(availableRules[randomIndex]);
-            availableRules.RemoveAt(randomIndex);
-        }
     }
 
     private void JumpLevels(int count)

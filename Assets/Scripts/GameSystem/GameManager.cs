@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 // --- STAT ENUMS & TYPES ---
 
@@ -55,6 +56,7 @@ public class LobbyOption
     [Header("Visuals")]
     public GameObject prefab3D;
     public string optionID;
+    public Sprite icon;
 }
 
 [System.Serializable]
@@ -141,6 +143,16 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI itemCounterText;
     public string displayFormat = "Items: {0} / {1}";
 
+    [Header("UI Counter Animation")]
+    [Tooltip("Multiplier for text scale when animated (e.g. 1.3 = 30% larger).")]
+    [SerializeField] private float counterPunchScale = 1.35f;
+
+    [Tooltip("Duration in seconds for the pop animation.")]
+    [SerializeField] private float counterAnimDuration = 0.2f;
+
+    [Tooltip("Flash color when item is picked up.")]
+    [SerializeField] private Color counterFlashColor = Color.yellow;
+
     [Header("Level Completion & Finish Portal")]
     public GameObject finishPortalPrefab;
     public Vector3 finishOffsetAboveStart = new Vector3(0f, 1f, 0f);
@@ -193,6 +205,11 @@ public class GameManager : MonoBehaviour
     private Coroutine activeSpawnCoroutine;
     private AudioSource musicAudioSource;
 
+    // UI Animation cached values
+    private Vector3 defaultCounterScale = Vector3.one;
+    private Color defaultCounterColor = Color.white;
+    private Coroutine counterAnimationCoroutine;
+
     private readonly List<GameObject> activeSpawnedPedestals = new List<GameObject>();
     private readonly List<GameObject> activeEnemies = new List<GameObject>();
 
@@ -216,6 +233,13 @@ public class GameManager : MonoBehaviour
         }
         musicAudioSource.loop = true;
         musicAudioSource.playOnAwake = false;
+
+        // Cache original UI text properties for animation reset
+        if (itemCounterText != null)
+        {
+            defaultCounterScale = itemCounterText.transform.localScale;
+            defaultCounterColor = itemCounterText.color;
+        }
     }
 
     private void Start()
@@ -371,6 +395,7 @@ public class GameManager : MonoBehaviour
 
         CollectedItems++;
         UpdateUI();
+        AnimateItemCounter(); // Trigger punch animation on collect
 
         if (TotalItems > 0 && CollectedItems >= TotalItems)
         {
@@ -384,6 +409,56 @@ public class GameManager : MonoBehaviour
         {
             itemCounterText.text = string.Format(displayFormat, CollectedItems, TotalItems);
         }
+    }
+
+    // --- UI ANIMATION ROUTINE ---
+
+    private void AnimateItemCounter()
+    {
+        if (itemCounterText == null) return;
+
+        if (counterAnimationCoroutine != null)
+        {
+            StopCoroutine(counterAnimationCoroutine);
+        }
+
+        counterAnimationCoroutine = StartCoroutine(PunchItemCounterRoutine());
+    }
+
+    private IEnumerator PunchItemCounterRoutine()
+    {
+        float halfDuration = counterAnimDuration * 0.5f;
+        Vector3 targetScale = defaultCounterScale * counterPunchScale;
+        float elapsed = 0f;
+
+        // Phase 1: Scale up and transition to Flash Color
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / halfDuration;
+
+            itemCounterText.transform.localScale = Vector3.Lerp(defaultCounterScale, targetScale, t);
+            itemCounterText.color = Color.Lerp(defaultCounterColor, counterFlashColor, t);
+            yield return null;
+        }
+
+        elapsed = 0f;
+
+        // Phase 2: Scale back down and revert to Original Color
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / halfDuration;
+
+            itemCounterText.transform.localScale = Vector3.Lerp(targetScale, defaultCounterScale, t);
+            itemCounterText.color = Color.Lerp(counterFlashColor, defaultCounterColor, t);
+            yield return null;
+        }
+
+        // Snap back to exact base parameters
+        itemCounterText.transform.localScale = defaultCounterScale;
+        itemCounterText.color = defaultCounterColor;
+        counterAnimationCoroutine = null;
     }
 
     public void TriggerFinish()
@@ -422,6 +497,12 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
+        // Hide item counter while in lobby selection
+        if (itemCounterText != null)
+        {
+            itemCounterText.gameObject.SetActive(false);
+        }
+
         currentLobbyPhase = 0; // Reset back to first choice
         isProcessingSelection = false;
         PlayMusic(lobbyMusic);
@@ -696,6 +777,12 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        // Reveal item counter when entering actual level
+        if (itemCounterText != null)
+        {
+            itemCounterText.gameObject.SetActive(true);
+        }
+
         isProcessingSelection = false;
         PlayMusic(inLevelMusic);
         ClearLobbyObjects();
@@ -818,7 +905,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private List<LobbyOption> FetchOptionPoolForType(LobbySelectionType type)
+    public List<LobbyOption> FetchOptionPoolForType(LobbySelectionType type)
     {
         List<LobbyOption> sourcePool = new List<LobbyOption>();
 
@@ -833,7 +920,29 @@ public class GameManager : MonoBehaviour
                 break;
 
             case LobbySelectionType.PlayerBuff:
-                sourcePool.AddRange(playerBuffOptions);
+                // Group player buffs by optionID (or title)
+                var buffGroups = playerBuffOptions
+                    .GroupBy(b => !string.IsNullOrEmpty(b.optionID) ? b.optionID : b.title);
+
+                foreach (var group in buffGroups)
+                {
+                    string groupKey = group.Key;
+
+                    // Sort ascending by buffValue (lowest value first)
+                    var sortedBuffs = group.OrderBy(b => b.buffValue).ToList();
+
+                    if (sortedBuffs.Count == 0) continue;
+
+                    // Check how many times this buff has been chosen so far
+                    int acquiredCount = ActiveModifiers.Count(m =>
+                        m is PlayerBuffOption activeBuff &&
+                        (!string.IsNullOrEmpty(activeBuff.optionID) ? activeBuff.optionID == groupKey : activeBuff.title == groupKey)
+                    );
+
+                    // Clamp index to highest available element so it repeats infinitely once maxed
+                    int targetIndex = Mathf.Min(acquiredCount, sortedBuffs.Count - 1);
+                    sourcePool.Add(sortedBuffs[targetIndex]);
+                }
                 break;
 
             case LobbySelectionType.EnemyBuff:
@@ -856,13 +965,21 @@ public class GameManager : MonoBehaviour
 
         List<LobbyOption> selectedChoices = new List<LobbyOption>();
         List<LobbyOption> tempPool = new List<LobbyOption>(sourcePool);
-        int choicesToPick = Mathf.Min(optionSpawnPoints.Length, tempPool.Count);
+        int choicesToPick = optionSpawnPoints.Length;
 
-        for (int i = 0; i < choicesToPick; i++)
+        // Pick unique options until pedestals are filled or pool runs out
+        while (selectedChoices.Count < choicesToPick && tempPool.Count > 0)
         {
             int randomIndex = Random.Range(0, tempPool.Count);
-            selectedChoices.Add(tempPool[randomIndex]);
-            tempPool.RemoveAt(randomIndex);
+            LobbyOption chosen = tempPool[randomIndex];
+            selectedChoices.Add(chosen);
+
+            string chosenKey = !string.IsNullOrEmpty(chosen.optionID) ? chosen.optionID : chosen.title;
+
+            // Remove duplicates from tempPool for this selection wave
+            tempPool.RemoveAll(opt =>
+                (!string.IsNullOrEmpty(opt.optionID) ? opt.optionID : opt.title) == chosenKey
+            );
         }
 
         return selectedChoices;
