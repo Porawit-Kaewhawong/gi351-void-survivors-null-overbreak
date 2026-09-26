@@ -119,6 +119,63 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &276551736
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.43094
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.83656
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -5.01254
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6620849253714873466, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6839315494490371546, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+      propertyPath: m_Name
+      value: StopSignEnemy
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
 --- !u!1 &896568631
 GameObject:
   m_ObjectHideFlags: 0
@@ -286,14 +343,14 @@ MonoBehaviour:
   gravity: -20
   killYThreshold: -20
   basePickupRadius: 2
-  baseMaxHealth: 5
+  baseMaxHealth: 1000
   baseMaxShield: 0
   groundCheckRadius: 0.3
   groundCheckOffset: 0.05
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  cameraTransform: {fileID: 0}
+  cameraTransform: {fileID: 1462682523}
   spriteRenderer: {fileID: 2022230331}
   animationFPS: 3
   billboardToCamera: 1
@@ -1027,6 +1084,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: PoorlyDrawnCharacter
       objectReference: {fileID: 0}
+    - target: {fileID: 5420205998641944471, guid: 894a12047b7d50d419a44799713edf71, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5716664665884684227, guid: 894a12047b7d50d419a44799713edf71, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6512573332161822740, guid: 894a12047b7d50d419a44799713edf71, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.60565
@@ -1083,6 +1148,10 @@ PrefabInstance:
     - target: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
       propertyPath: m_Name
       value: AbnormalChair
+      objectReference: {fileID: 0}
+    - target: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7801882779596812989, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1181,6 +1250,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BalloonEnemy
       objectReference: {fileID: 0}
+    - target: {fileID: 7480281311546530933, guid: a1c12823cb021f34d8bbc048d14d3c1b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1199,3 +1272,4 @@ SceneRoots:
   - {fileID: 4689168812452183798}
   - {fileID: 3751786965965968163}
   - {fileID: 913012697}
+  - {fileID: 276551736}
