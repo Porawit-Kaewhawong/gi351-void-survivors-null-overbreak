@@ -1,26 +1,27 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 
-public class FilterPlacer : EnemyBase
+public class FilterPlacerEnemy : EnemyBase
 {
     [Header("Movement Settings")]
-    [Tooltip("Speed at which the Filter Placer chases the player.")]
+    [Tooltip("Speed at which the filter placer chases the player.")]
     [SerializeField] private float moveSpeed = 3.5f;
 
-    [Header("Filter Effect Settings")]
-    [Tooltip("Duration of the vision-obscuring filter effect in seconds.")]
+    [Tooltip("Height offset for chasing.")]
+    [SerializeField] private float heightOffset = 1f;
+
+    [Header("Filter Status Effect Settings")]
+    [Tooltip("Duration of the vision-hindering filter status in seconds.")]
     [SerializeField] private float filterDuration = 4f;
 
-    [Tooltip("Color tint of the vision filter (e.g., dark fog or strange color tint).")]
-    [SerializeField] private Color filterColor = new Color(0.1f, 0.4f, 0.1f, 0.75f);
+    [Tooltip("Color tint of the weird filter overlay that blocks vision.")]
+    [SerializeField] private Color filterOverlayColor = new Color(0.2f, 0.8f, 0.3f, 0.65f);
 
-    [Tooltip("Cooldown time between applying the filter effect again.")]
-    [SerializeField] private float touchCooldown = 2f;
+    [Tooltip("Intensity of the screen shake while the filter is active.")]
+    [SerializeField] private float shakeIntensity = 0.08f;
 
     private CharacterController charController;
-    private float cooldownTimer;
-    private static GameObject activeFilterCanvas;
+    private static bool isFilterActive = false;
 
     protected override void Awake()
     {
@@ -32,19 +33,13 @@ public class FilterPlacer : EnemyBase
     {
         base.Update();
 
-        // Handle cooldown timer over time
-        if (cooldownTimer > 0f)
-        {
-            cooldownTimer -= Time.deltaTime;
-        }
-
         if (playerTransform == null)
         {
             FindPlayer();
             return;
         }
 
-        // Chase the player continuously (does not stop even if the player stands still)
+        // Continuously chase the player regardless of whether the player stops moving
         ChasePlayer();
     }
 
@@ -57,106 +52,122 @@ public class FilterPlacer : EnemyBase
             charController = gameObject.AddComponent<CharacterController>();
             charController.radius = 0.5f;
             charController.height = 1.8f;
+            charController.center = new Vector3(0f, 0.9f, 0f);
         }
     }
 
-    // --- CHASE LOGIC ---
+    // --- CHASE PLAYER LOGIC ---
     private void ChasePlayer()
     {
-        Vector3 targetPos = new Vector3(playerTransform.position.x, transform.position.y, playerTransform.position.z);
-        Vector3 direction = (targetPos - transform.position).normalized;
+        Vector3 targetPosition = playerTransform.position + Vector3.up * heightOffset;
+        Vector3 toTarget = targetPosition - transform.position;
+        toTarget.y = 0f; // Keep movement horizontal
 
-        // Move towards the player every frame regardless of whether the player moves or stops
+        Vector3 moveDir = toTarget.normalized * moveSpeed;
+
+        // Move towards the player continuously
         if (charController != null)
         {
-            charController.Move(direction * moveSpeed * Time.deltaTime);
+            charController.Move(moveDir * Time.deltaTime);
         }
         else
         {
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         }
 
-        // Rotate smoothly towards the player
-        if (direction != Vector3.zero)
+        // Face towards the player
+        if (toTarget != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            Quaternion targetRotation = Quaternion.LookRotation(toTarget);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
     }
 
-    // --- COLLISION & TRIGGER DETECTION ---
+    // --- TOUCH COLLISION DETECTION ---
     private void OnCollisionEnter(Collision collision)
     {
-        TryApplyFilter(collision.gameObject);
+        TriggerFilterOnTouch(collision.gameObject);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        TryApplyFilter(other.gameObject);
+        TriggerFilterOnTouch(other.gameObject);
     }
 
-    private void TryApplyFilter(GameObject targetObj)
+    private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (cooldownTimer > 0f || targetObj == null) return;
+        TriggerFilterOnTouch(hit.gameObject);
+    }
 
-        // Check if the touched object is the player
-        if (targetObj.CompareTag("Player"))
+    private void TriggerFilterOnTouch(GameObject target)
+    {
+        // Check if the touched object is the player and the filter isn't already active
+        if (target.CompareTag("Player") && !isFilterActive)
         {
-            ApplyVisionFilter();
-            cooldownTimer = touchCooldown;
-            Debug.Log($"[{gameObject.name}] Applied vision filter to the player!");
+            StartCoroutine(ApplyFilterStatusRoutine());
+
+            // Optional: Deal touch damage if needed via EnemyBase stats
+            PlayerController playerCtrl = target.GetComponent<PlayerController>();
+            if (playerCtrl != null)
+            {
+                playerCtrl.TakeDamage(attackDamage);
+            }
         }
     }
 
-    // --- VISION FILTER EFFECT LOGIC ---
-    private void ApplyVisionFilter()
+    // --- FILTER STATUS EFFECT COROUTINE ---
+    private IEnumerator ApplyFilterStatusRoutine()
     {
-        StartCoroutine(FilterEffectRoutine());
-    }
+        isFilterActive = true;
+        Debug.Log($"[{gameObject.name}] Player touched! Applying vision-hindering filter status.");
 
-    private IEnumerator FilterEffectRoutine()
-    {
-        // If a filter canvas already exists, destroy it to reset the timer
-        if (activeFilterCanvas != null)
-        {
-            Destroy(activeFilterCanvas);
-        }
-
-        // Dynamically create a UI Canvas over the screen so it's all-in-one self-contained
-        GameObject canvasObj = new GameObject("PlayerVisionFilterCanvas");
+        // 1. Dynamically create a full-screen UI Canvas and Panel to block/hinder vision
+        GameObject canvasObj = new GameObject("PlayerFilterCanvas");
         Canvas canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 999; // Render on top of everything
-        canvasObj.AddComponent<CanvasScaler>();
-        canvasObj.AddComponent<GraphicRaycaster>();
-        activeFilterCanvas = canvasObj;
+        canvas.sortingOrder = 999; // Ensure it renders on top of everything
+        canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-        // Create a full-screen Panel/Image for the filter effect
         GameObject panelObj = new GameObject("FilterPanel");
         panelObj.transform.SetParent(canvasObj.transform, false);
-        Image img = panelObj.AddComponent<Image>();
-        img.color = filterColor;
+        UnityEngine.UI.Image panelImage = panelObj.AddComponent<UnityEngine.UI.Image>();
+        panelImage.color = filterOverlayColor;
 
-        // Stretch the panel to fill the entire screen
+        // Stretch panel to cover the entire screen
         RectTransform rect = panelObj.GetComponent<RectTransform>();
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.sizeDelta = Vector2.zero;
         rect.anchoredPosition = Vector2.zero;
 
-        // Keep the filter active for the specified duration
+        // 2. Camera shake and duration loop
+        Camera mainCam = Camera.main;
+        Vector3 originalCamPos = mainCam != null ? mainCam.transform.localPosition : Vector3.zero;
+
         float elapsed = 0f;
         while (elapsed < filterDuration)
         {
+            // Shake the camera to make it disorienting and hard to see
+            if (mainCam != null)
+            {
+                Vector3 shakeOffset = Random.insideUnitSphere * shakeIntensity;
+                shakeOffset.z = 0f;
+                mainCam.transform.localPosition = originalCamPos + shakeOffset;
+            }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Cleanup the canvas after the duration ends
-        if (activeFilterCanvas != null)
+        // 3. Restore camera position and remove the filter overlay
+        if (mainCam != null)
         {
-            Destroy(activeFilterCanvas);
-            activeFilterCanvas = null;
+            mainCam.transform.localPosition = originalCamPos;
         }
+
+        Destroy(canvasObj);
+        isFilterActive = false;
+        Debug.Log("[FilterPlacerEnemy] Filter status expired.");
     }
 }
