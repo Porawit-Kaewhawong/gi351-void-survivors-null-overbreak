@@ -6,6 +6,13 @@ public class ToLobbyPortal : MonoBehaviour
     [Header("Player Detection")]
     public string playerTag = "Player";
 
+    [Header("Audio Settings")]
+    [Tooltip("Sound clip played when entering the portal to finish a level.")]
+    [SerializeField] private AudioClip portalSound;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float soundVolume = 1f;
+
     private bool levelFinished = false;
 
     private void Awake()
@@ -22,6 +29,11 @@ public class ToLobbyPortal : MonoBehaviour
         if (other.CompareTag(playerTag) || other.GetComponent<PlayerController>() != null)
         {
             levelFinished = true;
+
+            if (portalSound != null)
+            {
+                AudioSource.PlayClipAtPoint(portalSound, transform.position, soundVolume);
+            }
 
             if (GameManager.Instance != null)
             {

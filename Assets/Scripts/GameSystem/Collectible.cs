@@ -2,6 +2,14 @@ using UnityEngine;
 
 public class Collectible : MonoBehaviour
 {
+    [Header("Audio Settings")]
+    [Tooltip("Sound clip played when the player collects this item.")]
+    [SerializeField] private AudioClip collectSound;
+
+    [Tooltip("Volume level for the collect sound (0.0 to 1.0).")]
+    [Range(0f, 1f)]
+    [SerializeField] private float soundVolume = 1f;
+
     private bool isCollected = false;
     private bool isRegistered = false;
     private Transform playerTransform;
@@ -9,7 +17,7 @@ public class Collectible : MonoBehaviour
 
     private void Awake()
     {
-        Register();
+        Register(); // Fires IMMEDIATELY on Instantiate()
     }
 
     private void Start()
@@ -29,7 +37,6 @@ public class Collectible : MonoBehaviour
         float range = playerController != null ? playerController.CurrentPickupRadius : 2f;
         float distance = Vector3.Distance(transform.position, playerTransform.position);
 
-        // Move item toward player if inside magnetic pickup range
         if (distance <= range)
         {
             transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, 10f * Time.deltaTime);
@@ -50,6 +57,12 @@ public class Collectible : MonoBehaviour
         if (!isCollected && other.CompareTag("Player"))
         {
             isCollected = true;
+
+            // Play pickup sound at the collectible's position before destroying
+            if (collectSound != null)
+            {
+                AudioSource.PlayClipAtPoint(collectSound, transform.position, soundVolume);
+            }
 
             if (GameManager.Instance != null)
             {

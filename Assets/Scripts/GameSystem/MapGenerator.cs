@@ -38,6 +38,13 @@ public class MapGenerator : MonoBehaviour
     public GameObject[] itemPrefabs;
     public string itemSpawnPointName = "ItemSpawn";
 
+    [Header("Level Rule Objects & Scaling")]
+    public GameObject jumpPadPrefab;
+    [Tooltip("Base reference map radius used for 1x multiplier scaling.")]
+    public float referenceMapRadius = 10f;
+    [Tooltip("Offset multiplier from platform center toward void (0.5 = exact platform edge, 0.55 - 0.6 = floating just outside edge).")]
+    [Range(0.1f, 1.0f)] public float jumpPadEdgeOffset = 0.58f;
+
     [Header("Generator Seed Settings")]
     public bool useRandomSeed = true;
     public int seedOffset = 10000;
@@ -49,6 +56,7 @@ public class MapGenerator : MonoBehaviour
     public Vector3 StartChunkWorldPosition { get; private set; }
 
     private readonly Dictionary<Vector2Int, GameObject> activeChunks = new Dictionary<Vector2Int, GameObject>();
+    private readonly List<GameObject> spawnedJumpPads = new List<GameObject>();
     private readonly HashSet<Vector2Int> pathCells = new HashSet<Vector2Int>();
     private readonly HashSet<Vector2Int> voidMask = new HashSet<Vector2Int>();
     private Vector2Int startCoord;
@@ -83,11 +91,20 @@ public class MapGenerator : MonoBehaviour
 
     public void ClearMap()
     {
+        // 1. Clear Active Chunks
         foreach (var chunk in activeChunks.Values)
         {
             if (chunk != null) Destroy(chunk);
         }
         activeChunks.Clear();
+
+        // 2. Clear dynamically spawned Jump Pads
+        foreach (var pad in spawnedJumpPads)
+        {
+            if (pad != null) Destroy(pad);
+        }
+        spawnedJumpPads.Clear();
+
         pathCells.Clear();
         voidMask.Clear();
     }
@@ -121,16 +138,19 @@ public class MapGenerator : MonoBehaviour
             Debug.LogWarning("[MapGenerator] Map generation failed to reach minimum density. Using fallback bounds.");
         }
 
+        // 1. Instantiate layout chunks
         InstantiateMapChunks();
+
+        // 2. Apply random tilts to non-spawn chunks
+        ApplyTiltedPlatforms();
+
+        // 3. Spawn jump pads (inheriting platform rotation/tilt)
+        SpawnScaledJumpPads();
 
         // Safety auto-finish check if layout has no items spawned
         if (GameManager.Instance != null && GameManager.Instance.finishPortalPrefab != null)
         {
-            // If zero items were registered during instantiation
-            System.Reflection.FieldInfo totalItemsField = typeof(GameManager).GetField("totalItems", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            int totalItems = (totalItemsField != null) ? (int)totalItemsField.GetValue(GameManager.Instance) : 0;
-
-            if (totalItems == 0)
+            if (GameManager.Instance.TotalItems == 0)
             {
                 Debug.LogWarning("[MapGenerator] No objective items found on layout! Auto-opening Finish Portal.");
                 GameManager.Instance.TriggerFinish();
@@ -191,6 +211,114 @@ public class MapGenerator : MonoBehaviour
                 SpawnItemsInChunk(chunk, coord);
             }
         }
+    }
+
+    // --- LEVEL RULE MODIFIERS & SPAWNING ---
+
+    private void ApplyTiltedPlatforms()
+    {
+        if (GameManager.Instance == null) return;
+        if (!GameManager.Instance.HasLevelRule(LevelRuleType.TiltedPlatforms)) return;
+
+        float maxTiltDegrees = GameManager.Instance.GetTotalLevelRuleValue(LevelRuleType.TiltedPlatforms);
+        if (maxTiltDegrees <= 0f) return;
+
+        int tiltedCount = 0;
+        foreach (var kvp in activeChunks)
+        {
+            Vector2Int coord = kvp.Key;
+            GameObject chunk = kvp.Value;
+
+            if (coord == startCoord || chunk == null) continue;
+
+            float randomX = Random.Range(-maxTiltDegrees, maxTiltDegrees);
+            float randomZ = Random.Range(-maxTiltDegrees, maxTiltDegrees);
+
+            chunk.transform.Rotate(randomX, 0f, randomZ, Space.Self);
+            tiltedCount++;
+        }
+
+        Debug.Log($"[MapGenerator] LevelRule Active: Tilted {tiltedCount} platforms up to ±{maxTiltDegrees}°.");
+    }
+
+    private void SpawnScaledJumpPads()
+    {
+        if (jumpPadPrefab == null || GameManager.Instance == null) return;
+        if (!GameManager.Instance.HasLevelRule(LevelRuleType.JumpPad)) return;
+
+        float baseCount = GameManager.Instance.GetTotalLevelRuleValue(LevelRuleType.JumpPad);
+        if (baseCount <= 0f) return;
+
+        float safeRefRadius = Mathf.Max(1f, referenceMapRadius);
+        float scaleMultiplier = Mathf.Max(1f, mapRadius / safeRefRadius);
+
+        int totalJumpPadsToSpawn = Mathf.Clamp(Mathf.RoundToInt(baseCount * scaleMultiplier), 1, 15);
+
+        List<(Vector2Int pathCoord, Vector2Int dir)> validSpots = GetValidBorderVoidSpots();
+        if (validSpots.Count == 0)
+        {
+            Debug.LogWarning("[MapGenerator] No valid empty void cells found around chunks to place Jump Pads.");
+            return;
+        }
+
+        List<Vector3> spawnedPadPositions = new List<Vector3>();
+        int spawnedCount = 0;
+        float minDistanceBetweenPads = chunkSize * 0.75f;
+
+        for (int i = 0; i < totalJumpPadsToSpawn && validSpots.Count > 0; i++)
+        {
+            int randomIndex = Random.Range(0, validSpots.Count);
+            var spot = validSpots[randomIndex];
+            validSpots.RemoveAt(randomIndex);
+
+            // Calculate position relative to path chunk edge instead of center of empty void
+            Vector3 pathWorldPos = new Vector3(spot.pathCoord.x * chunkSize, chunkYPosition, spot.pathCoord.y * chunkSize);
+            Vector3 offset = new Vector3(spot.dir.x, 0f, spot.dir.y) * (chunkSize * jumpPadEdgeOffset);
+            Vector3 voidWorldPos = pathWorldPos + offset;
+
+            bool tooCloseToOtherPad = false;
+            foreach (Vector3 existingPadPos in spawnedPadPositions)
+            {
+                if (Vector3.Distance(voidWorldPos, existingPadPos) < minDistanceBetweenPads)
+                {
+                    tooCloseToOtherPad = true;
+                    break;
+                }
+            }
+
+            if (tooCloseToOtherPad) continue;
+
+            GameObject padInstance = Instantiate(jumpPadPrefab, voidWorldPos, Quaternion.identity, transform);
+            spawnedJumpPads.Add(padInstance);
+
+            spawnedPadPositions.Add(voidWorldPos);
+            spawnedCount++;
+        }
+
+        Debug.Log($"[MapGenerator] LevelRule Active: Spawned {spawnedCount} floating Jump Pads near platform borders.");
+    }
+
+    private List<(Vector2Int pathCoord, Vector2Int dir)> GetValidBorderVoidSpots()
+    {
+        List<(Vector2Int pathCoord, Vector2Int dir)> spots = new List<(Vector2Int, Vector2Int)>();
+        HashSet<Vector2Int> visitedVoids = new HashSet<Vector2Int>();
+        Vector2Int[] cardinalDirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        foreach (Vector2Int pathCoord in pathCells)
+        {
+            if (pathCoord == startCoord) continue;
+
+            foreach (Vector2Int dir in cardinalDirs)
+            {
+                Vector2Int neighbor = pathCoord + dir;
+                if (!IsPathCell(neighbor) && visitedVoids.Add(neighbor))
+                {
+                    spots.Add((pathCoord, dir));
+                }
+            }
+        }
+
+        return spots;
     }
 
     public void TeleportPlayerToSpawn()
@@ -444,13 +572,10 @@ public class MapGenerator : MonoBehaviour
                 int itemIndex = hash % itemPrefabs.Length;
                 GameObject selectedItem = itemPrefabs[itemIndex];
 
-                if (selectedItem != null)
+                if (selectedItem != null && selectedItem != jumpPadPrefab && !selectedItem.name.Contains("JumpPad"))
                 {
                     GameObject itemInstance = Instantiate(selectedItem, child);
                     itemInstance.transform.SetLocalPositionAndRotation(Vector3.zero, selectedItem.transform.localRotation);
-
-                    // Removed GameManager.Instance.RegisterItem();
-                    // Collectible.cs handles its own registration in Start() upon instantiation.
                 }
                 spawnPointIndex++;
             }
@@ -493,7 +618,6 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        // Fallback partial socket match
         foreach (var prefab in shuffledPrefabs)
         {
             if (prefab == null) continue;
