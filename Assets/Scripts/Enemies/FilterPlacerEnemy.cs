@@ -3,9 +3,7 @@ using System.Collections;
 
 public class FilterPlacerEnemy : EnemyBase
 {
-    [Header("Movement Settings")]
-    [Tooltip("Speed at which the filter placer chases the player.")]
-    [SerializeField] private float moveSpeed = 3.5f;
+    
 
     [Tooltip("Height offset for chasing.")]
     [SerializeField] private float heightOffset = 1f;
