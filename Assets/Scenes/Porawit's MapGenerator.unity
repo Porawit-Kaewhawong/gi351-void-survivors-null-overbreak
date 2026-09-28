@@ -387,30 +387,30 @@ MonoBehaviour:
   enemySelectionOptions:
   - title: Balloon
     description: Balloon will float to you
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_balloon
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 62af567390190a34f8351bb48fae28db, type: 3}
     levelSpawnPrefab: {fileID: 7480281311546530933, guid: a1c12823cb021f34d8bbc048d14d3c1b, type: 3}
     enemyCount: 2
   - title: Abnormal Chair
     description: Follower will follow you forever.
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_chair
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: a7755ab162a54b34ea5a53137ec9e9ad, type: 3}
     levelSpawnPrefab: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
     enemyCount: 2
   - title: Poorly-draw Character
     description: Follower will follow you forever.
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_poorly
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 5fcc85c58c9d9c943871e4a0a715d75b, type: 3}
     levelSpawnPrefab: {fileID: 5420205998641944471, guid: 894a12047b7d50d419a44799713edf71, type: 3}
     enemyCount: 2
   - title: Follower
     description: Follower will follow you forever.
-    prefab3D: {fileID: 204673264803763543, guid: c1afaf69b664a244ba91cda42e87abc6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_follower
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: f851d467663d6174cb923d1ca62189d6, type: 3}
     levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
     enemyCount: 1
   playerBuffOptions:
@@ -420,7 +420,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: speed_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: abd28118b38ab5e4eb99d36ba6506426, type: 3}
     targetStat: 1
     buffValue: 10
   - title: Cheap Running Shoes
@@ -429,7 +429,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: speed_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: c94a53c203e7a94408edf0c77aa1e391, type: 3}
     targetStat: 1
     buffValue: 20
   - title: Typical Running Shoes
@@ -438,7 +438,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: speed_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 9542b542138bec64daf5666801b4cf64, type: 3}
     targetStat: 1
     buffValue: 30
   - title: Perfect Running Shoes
@@ -447,7 +447,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: speed_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 34b594338cd306f4682c3bfb81bd76cd, type: 3}
     targetStat: 1
     buffValue: 40
   - title: Scrapyard-based Jumping Spring
@@ -456,7 +456,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: jump_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 2592fbb50c07ede4b8726ceb0cbea59b, type: 3}
     targetStat: 2
     buffValue: 10
   - title: Walmart-type Jumping Spring
@@ -465,7 +465,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: jump_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 3be29ff992a50a449b81295e0c1a6f25, type: 3}
     targetStat: 2
     buffValue: 15
   - title: Nothing-special Jumping Spring
@@ -474,7 +474,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: jump_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 55edf831eaa02144ebb61fab667b0271, type: 3}
     targetStat: 2
     buffValue: 20
   - title: Truly the Jumping Spring
@@ -483,28 +483,28 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: jump_boost
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 60c997a6c3870144baed8de777dc0711, type: 3}
     targetStat: 2
     buffValue: 25
   - title: Off-shore Damage Absorber
     description: Can absorb damage up to 1 hits
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: shield
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 6ffeeba52d7788e438c97551f04bd35e, type: 3}
     targetStat: 4
     buffValue: 1
   - title: Online-shopping Damage Absorber
     description: Can absorb damage up to 2 hits
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: shield
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 3dd3fa29dc85da1468b9c2f31b6ec721, type: 3}
     targetStat: 4
     buffValue: 2
   - title: Perfect Damage Absorber
     description: Can absorb damage up to 3 hits
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: shield
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 94395d4b18d27da4fbe30670d9471420, type: 3}
     targetStat: 4
     buffValue: 3
   - title: Trashcan-level Magnet
@@ -513,7 +513,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: pickup_range
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: ab77baa8bb8de7d46814d099b441042e, type: 3}
     targetStat: 3
     buffValue: 10
   - title: Cheap Magnet
@@ -522,25 +522,25 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: pickup_range
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 7298c94bc2a1eb549bdd25b09cf4d307, type: 3}
     targetStat: 3
     buffValue: 20
-  - title: drawing-of Absolute Magnet
+  - title: Gravity Magnet
     description: 'Base pickup range increases by 30%
 
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: pickup_range
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 09a91bbce5bce2241981cae04c13ec65, type: 3}
     targetStat: 3
     buffValue: 30
-  - title: Gravity Magnet
+  - title: Absolute Magnet
     description: 'Base pickup range increases by 40%
 
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: pickup_range
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: a85f79a1bae7ed045846dc4586f5f50e, type: 3}
     targetStat: 3
     buffValue: 40
   - title: It's wings
@@ -549,7 +549,7 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: extra_jump
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 324cfadb90f7b3341a8c4a506836ded1, type: 3}
     targetStat: 5
     buffValue: 1
   - title: It's MORE wings!!
@@ -558,27 +558,27 @@ MonoBehaviour:
 '
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: extra_jump
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 94bd40eddf918d345be92d5ced01116a, type: 3}
     targetStat: 5
     buffValue: 2
   enemyBuffOptions:
   - title: Random Enemy Count Increase
     description: Increase 1 random enemy
-    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_count
     icon: {fileID: 0}
     targetStat: 1
     buffValue: 1
   - title: Enemies Speed Boost
     description: Increase enemies' speed boosts by 10%
-    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_speed
     icon: {fileID: 0}
     targetStat: 2
     buffValue: 10
   - title: Enemies Health Boost
     description: Increase enemies' health boosts by 10%
-    prefab3D: {fileID: 969783713485896283, guid: 0e1dcb3fd9628764d8b4611c379079ad, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_health
     icon: {fileID: 0}
     targetStat: 3
@@ -586,28 +586,28 @@ MonoBehaviour:
   levelRuleOptions:
   - title: Tilted Platforms
     description: Tilted Platforms by 25%
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: tilted_platform
     icon: {fileID: 0}
     ruleType: 1
     ruleValue: 10
   - title: Lower Gravity
     description: Low Gravity by 50%
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: lower_gravity
     icon: {fileID: 0}
     ruleType: 3
     ruleValue: 50
   - title: Random Spawn
     description: Player will spawn at randomize platform
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: random_spawn
     icon: {fileID: 0}
     ruleType: 4
     ruleValue: 1
   - title: Jump Pad
     description: Spawn jump pads inside a level
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: jump_pad
     icon: {fileID: 0}
     ruleType: 5
@@ -615,7 +615,7 @@ MonoBehaviour:
   - title: Round 2
     description: Entering the portal have 20% chance of palying round 2 of the same
       level again
-    prefab3D: {fileID: 4339973610673735840, guid: baaa66218020d134186d5032670c13b6, type: 3}
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: second_round
     icon: {fileID: 0}
     ruleType: 6
@@ -887,6 +887,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1406787258}
+  - {fileID: 1765220602}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &454154474
@@ -957,6 +958,10 @@ MonoBehaviour:
     walkFrames:
     - {fileID: 21300000, guid: 051e1979ab22bf64aba1004634b75747, type: 3}
     - {fileID: 21300000, guid: 9db7ab158e885e2448d2fcb169da4ebd, type: 3}
+  arrowTransform: {fileID: 1765220602}
+  collectibleTag: Collectible
+  trackerScanInterval: 0.2
+  hideArrowWhenNoneFound: 1
   damageOverlayImage: {fileID: 739314105}
   shieldHitColor: {r: 0.4669811, g: 0.7345357, b: 1, a: 0.4}
   healthHitColor: {r: 1, g: 0.48584908, b: 0.48584908, a: 0.4}
@@ -1030,7 +1035,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &488186642
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1048,7 +1053,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 50}
+  m_AnchoredPosition: {x: 0, y: 75}
   m_SizeDelta: {x: 1080, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &488186643
@@ -1073,8 +1078,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0 / 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 20662e09bee361f47ba3bae1c39d67bf, type: 2}
+  m_sharedMaterial: {fileID: 2469688488467270407, guid: 20662e09bee361f47ba3bae1c39d67bf, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1592,6 +1597,118 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 819405256}
   m_CullTransparentMesh: 1
+--- !u!1 &902510046
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 902510047}
+  - component: {fileID: 902510050}
+  - component: {fileID: 902510049}
+  - component: {fileID: 902510048}
+  m_Layer: 6
+  m_Name: ArrowTracker (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &902510047
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902510046}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.9298463, z: -0, w: 0.36794817}
+  m_LocalPosition: {x: -0.118829265, y: 0, z: 0.18726149}
+  m_LocalScale: {x: 0.21000001, y: 0.0882475, z: 0.51}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1765220602}
+  m_LocalEulerAnglesHint: {x: 0, y: -136.822, z: 0}
+--- !u!65 &902510048
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902510046}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &902510049
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902510046}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: d8c0f651f1fe88d45b1e5992a1d01d6e, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &902510050
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902510046}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &999507390
 GameObject:
   m_ObjectHideFlags: 0
@@ -2236,6 +2353,118 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1422308874}
   m_CullTransparentMesh: 1
+--- !u!1 &1436893321
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1436893322}
+  - component: {fileID: 1436893325}
+  - component: {fileID: 1436893324}
+  - component: {fileID: 1436893323}
+  m_Layer: 6
+  m_Name: ArrowTracker (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1436893322
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436893321}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.9298463, z: -0, w: 0.36794817}
+  m_LocalPosition: {x: 0.093, y: 0, z: 0.196}
+  m_LocalScale: {x: 0.5, y: 0.0882475, z: 0.20000002}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1765220602}
+  m_LocalEulerAnglesHint: {x: 0, y: -136.822, z: 0}
+--- !u!65 &1436893323
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436893321}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1436893324
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436893321}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: d8c0f651f1fe88d45b1e5992a1d01d6e, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1436893325
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436893321}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1573057815
 GameObject:
   m_ObjectHideFlags: 0
@@ -2380,6 +2609,152 @@ MonoBehaviour:
   tooltipContainer: {fileID: 1573057815}
   tooltipTitleText: {fileID: 999507392}
   tooltipDescriptionText: {fileID: 1945830703}
+--- !u!1 &1765220601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1765220602}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1765220602
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1765220601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.076, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 1851451421}
+  - {fileID: 902510047}
+  - {fileID: 1436893322}
+  m_Father: {fileID: 454154473}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1851451420
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1851451421}
+  - component: {fileID: 1851451424}
+  - component: {fileID: 1851451423}
+  - component: {fileID: 1851451422}
+  m_Layer: 6
+  m_Name: ArrowTracker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1851451421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851451420}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.13, y: 0.0882475, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1765220602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1851451422
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851451420}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1851451423
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851451420}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: d8c0f651f1fe88d45b1e5992a1d01d6e, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1851451424
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851451420}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1945830701
 GameObject:
   m_ObjectHideFlags: 0

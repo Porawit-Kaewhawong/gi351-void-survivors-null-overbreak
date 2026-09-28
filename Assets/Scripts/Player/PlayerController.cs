@@ -56,6 +56,16 @@ public class PlayerController : MonoBehaviour
     public SpriteDirectionData west;
     public SpriteDirectionData northWest;
 
+    [Header("Collectible Arrow Tracker")]
+    [Tooltip("Transform of the 3D or 2D Arrow object that points towards the item.")]
+    public Transform arrowTransform;
+    [Tooltip("Tag assigned to all collectible objects in the scene.")]
+    public string collectibleTag = "Collectible";
+    [Tooltip("How often (in seconds) to re-scan for the closest collectible.")]
+    public float trackerScanInterval = 0.2f;
+    [Tooltip("Hide the arrow when no collectibles remain in the scene.")]
+    public bool hideArrowWhenNoneFound = true;
+
     [Header("UI Visual Feedback")]
     [Tooltip("UI Image covering the screen used for hit color flashes (e.g. full-screen panel with raycast target disabled).")]
     public Image damageOverlayImage;
@@ -89,6 +99,10 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimer;
     private int extraJumpsRemaining;
     private bool isDead = false;
+
+    // Tracker Internal Handles
+    private Transform closestCollectible;
+    private float trackerScanTimer;
 
     // Audio & Visual internal handles
     private AudioSource heartbeatAudioSource;
@@ -199,6 +213,7 @@ public class PlayerController : MonoBehaviour
         ApplyGravity();
         HandleSpriteAnimation(moveInput);
         HandleHeartbeatSound();
+        HandleCollectibleTracker();
     }
 
     private void LateUpdate()
@@ -208,6 +223,68 @@ public class PlayerController : MonoBehaviour
         {
             spriteRenderer.transform.rotation = Quaternion.LookRotation(spriteRenderer.transform.position - cameraTransform.position);
         }
+    }
+
+    // --- COLLECTIBLE ARROW TRACKER ---
+
+    private void HandleCollectibleTracker()
+    {
+        if (arrowTransform == null) return;
+
+        // Re-scan scene periodically to find nearest collectible
+        trackerScanTimer -= Time.deltaTime;
+        if (trackerScanTimer <= 0f)
+        {
+            trackerScanTimer = trackerScanInterval;
+            FindClosestCollectible();
+        }
+
+        if (closestCollectible != null)
+        {
+            if (!arrowTransform.gameObject.activeSelf)
+            {
+                arrowTransform.gameObject.SetActive(true);
+            }
+
+            // Direction vector on horizontal plane
+            Vector3 targetDirection = closestCollectible.position - transform.position;
+            targetDirection.y = 0f; // Keep rotation strictly flat on floor
+
+            if (targetDirection.sqrMagnitude > 0.001f)
+            {
+                arrowTransform.rotation = Quaternion.LookRotation(targetDirection);
+            }
+        }
+        else
+        {
+            if (hideArrowWhenNoneFound && arrowTransform.gameObject.activeSelf)
+            {
+                arrowTransform.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void FindClosestCollectible()
+    {
+        GameObject[] collectibles = GameObject.FindGameObjectsWithTag(collectibleTag);
+        float minDistanceSqr = float.MaxValue;
+        Transform nearest = null;
+
+        Vector3 currentPosition = transform.position;
+
+        foreach (GameObject col in collectibles)
+        {
+            if (col == null || !col.activeInHierarchy) continue;
+
+            float distSqr = (col.transform.position - currentPosition).sqrMagnitude;
+            if (distSqr < minDistanceSqr)
+            {
+                minDistanceSqr = distSqr;
+                nearest = col.transform;
+            }
+        }
+
+        closestCollectible = nearest;
     }
 
     // --- FALL DEATH CHECK ---
