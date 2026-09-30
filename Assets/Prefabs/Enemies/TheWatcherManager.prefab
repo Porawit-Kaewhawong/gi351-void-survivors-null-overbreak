@@ -107,13 +107,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TheWatcherEnemy
   maxHealth: 25
   moveSpeed: 3.5
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1.2
   deathSound: {fileID: 0}
   deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
+  damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
   watcherSprite: {fileID: -5623194428626525839, guid: c11aa5cf92a0f0845b9d7ddc705871e7, type: 3}
   watcherMessage: You have something to retrieve in the fog!
   customFont: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}

@@ -8,6 +8,7 @@ public class SpriteDirectionData
 {
     public Sprite idleSprite;
     public List<Sprite> walkFrames = new List<Sprite>();
+    public List<Sprite> jumpFrames = new List<Sprite>();
 }
 
 public class PlayerController : MonoBehaviour
@@ -41,7 +42,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("2D Sprite & 8-Direction Animations")]
     public SpriteRenderer spriteRenderer;
-    [Tooltip("Frame rate for walking animation cycles.")]
+    [Tooltip("Frame rate for walking and jumping animation cycles.")]
     public float animationFPS = 8f;
     [Tooltip("If checked, rotates the SpriteRenderer to face the camera in 3D space.")]
     public bool billboardToCamera = true;
@@ -170,7 +171,6 @@ public class PlayerController : MonoBehaviour
         ApplyMainMenuUpgrades();
         spriteFlasher = GetComponentInChildren<SpriteFlash>();
 
-        ApplyMainMenuUpgrades();
         heartbeatAudioSource = gameObject.AddComponent<AudioSource>();
         heartbeatAudioSource.playOnAwake = false;
         heartbeatAudioSource.loop = false;
@@ -583,9 +583,24 @@ public class PlayerController : MonoBehaviour
         SpriteDirectionData dirData = GetDirectionData(lastDirectionIndex);
         if (dirData == null) return;
 
-        if (isMoving && dirData.walkFrames != null && dirData.walkFrames.Count > 0)
+        // Airborne / Jumping State
+        if (!isGrounded && dirData.jumpFrames != null && dirData.jumpFrames.Count > 0)
         {
-            // Cycle through walking frames
+            animTimer += Time.deltaTime;
+            float frameInterval = 1f / Mathf.Max(0.1f, animationFPS);
+
+            if (animTimer >= frameInterval)
+            {
+                animTimer -= frameInterval;
+                currentFrameIndex = (currentFrameIndex + 1) % dirData.jumpFrames.Count;
+            }
+
+            currentFrameIndex %= dirData.jumpFrames.Count;
+            SetSprite(dirData.jumpFrames[currentFrameIndex]);
+        }
+        // Grounded Walking State
+        else if (isGrounded && isMoving && dirData.walkFrames != null && dirData.walkFrames.Count > 0)
+        {
             animTimer += Time.deltaTime;
             float frameInterval = 1f / Mathf.Max(0.1f, animationFPS);
 
@@ -595,11 +610,12 @@ public class PlayerController : MonoBehaviour
                 currentFrameIndex = (currentFrameIndex + 1) % dirData.walkFrames.Count;
             }
 
+            currentFrameIndex %= dirData.walkFrames.Count;
             SetSprite(dirData.walkFrames[currentFrameIndex]);
         }
+        // Grounded Idle State
         else
         {
-            // Idle state
             animTimer = 0f;
             currentFrameIndex = 0;
             if (dirData.idleSprite != null)

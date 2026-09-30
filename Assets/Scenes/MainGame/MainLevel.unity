@@ -404,29 +404,57 @@ MonoBehaviour:
     description: Balloon will float to you
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_balloon
-    icon: {fileID: 21300000, guid: 62af567390190a34f8351bb48fae28db, type: 3}
+    icon: {fileID: 21300000, guid: 206ade414874ecf48854c62a052b6077, type: 3}
     levelSpawnPrefab: {fileID: 7480281311546530933, guid: a1c12823cb021f34d8bbc048d14d3c1b, type: 3}
     enemyCount: 2
   - title: Abnormal Chair
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_chair
-    icon: {fileID: 21300000, guid: a7755ab162a54b34ea5a53137ec9e9ad, type: 3}
+    icon: {fileID: 21300000, guid: 6c065dd3cd421c549ab261aaab24f566, type: 3}
     levelSpawnPrefab: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
     enemyCount: 2
   - title: Poorly-draw Character
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_poorly
-    icon: {fileID: 21300000, guid: 5fcc85c58c9d9c943871e4a0a715d75b, type: 3}
+    icon: {fileID: 21300000, guid: c8e5c64252e21d94c9138a2c589e3481, type: 3}
     levelSpawnPrefab: {fileID: 5420205998641944471, guid: 894a12047b7d50d419a44799713edf71, type: 3}
     enemyCount: 2
   - title: Follower
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_follower
-    icon: {fileID: 21300000, guid: f851d467663d6174cb923d1ca62189d6, type: 3}
+    icon: {fileID: 21300000, guid: c029facec50adc54995f1cad20856fc3, type: 3}
     levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
+    enemyCount: 1
+  - title: Stop Sign
+    description: You should stop when it appears.
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_stopsign
+    icon: {fileID: 21300000, guid: 582cd63494bf0574f9aa9814d8c5705a, type: 3}
+    levelSpawnPrefab: {fileID: 6839315494490371546, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+    enemyCount: 1
+  - title: The Watcher
+    description: Collect its item to keep yourself safe
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_watcher
+    icon: {fileID: 21300000, guid: 87eb08bd6f325ae42a5be6cd1f306673, type: 3}
+    levelSpawnPrefab: {fileID: 490442129511756057, guid: 40014bab4c17a8642b96d632ed75770f, type: 3}
+    enemyCount: 1
+  - title: Objective Giver
+    description: Follow its instructions
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_objectivegiver
+    icon: {fileID: 21300000, guid: 55b554d1282a1cd41be19cde554064e2, type: 3}
+    levelSpawnPrefab: {fileID: 365869445532505809, guid: 7938140c0eb22534680c1baec3f73b42, type: 3}
+    enemyCount: 1
+  - title: Filter Placer
+    description: Don't get too close or get filter'd
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_filterplacer
+    icon: {fileID: 21300000, guid: 7651aea9eb12d7343b379f3e012e6231, type: 3}
+    levelSpawnPrefab: {fileID: 9112133899006945850, guid: dc8785ea9da9c584b999dc56d7b198c7, type: 3}
     enemyCount: 1
   playerBuffOptions:
   - title: Broken Running Shoes
@@ -834,7 +862,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &219194349
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1424,41 +1452,65 @@ MonoBehaviour:
     walkFrames:
     - {fileID: 21300000, guid: 051e1979ab22bf64aba1004634b75747, type: 3}
     - {fileID: 21300000, guid: 9db7ab158e885e2448d2fcb169da4ebd, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 4688743b9a6397c4492ccb3d4efaef26, type: 3}
+    - {fileID: 21300000, guid: e1eb3765368fde64ba0be7cc44679cfa, type: 3}
   northEast:
     idleSprite: {fileID: 21300000, guid: a243bb1dfc5669b458bc86508bcfa946, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 002de16cbbd6e3a4b9979998e0e46f2c, type: 3}
     - {fileID: 21300000, guid: 9f1659162ec910f44b64ac91ea79a2c8, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 2b8011552134d7b4a9a6aabe2927f628, type: 3}
+    - {fileID: 21300000, guid: 2e2e9bdd90e166f49a010726ffb6d89b, type: 3}
   east:
     idleSprite: {fileID: 21300000, guid: c3945f3f98df8784eb376b317af005b4, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 013d4964853b36d4e8744b1b24be9b0a, type: 3}
     - {fileID: 21300000, guid: 414eb60e32b9d17448bb8887e58746ef, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 2245d3d3d87151747b1f5200b2eb2de5, type: 3}
+    - {fileID: 21300000, guid: fd7bd5c313288e14d85a9d21db14812e, type: 3}
   southEast:
     idleSprite: {fileID: 21300000, guid: d049b671eb9cee14a9fd38f8ed6b53ed, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 5a54353536219f24d96b1cc7d7418dfd, type: 3}
     - {fileID: 21300000, guid: b8ad76ca3a3f8114eb59dfae02adca6e, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 0bbe96030d05f4146933eb455762f16f, type: 3}
+    - {fileID: 21300000, guid: ea48f0b48d90eda448407341bebfedec, type: 3}
   south:
     idleSprite: {fileID: 21300000, guid: 487b5f23d664c734e97d6dfda08e061d, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 17557287e53dd4046bbcc8e39b77c2ee, type: 3}
     - {fileID: 21300000, guid: 3c5d5879bb10fc148990d81c534dcda6, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: b37374d1757bc3d43b44e251139e78b9, type: 3}
+    - {fileID: 21300000, guid: 74a5ce8388fc66245b64d3b009edc614, type: 3}
   southWest:
     idleSprite: {fileID: 21300000, guid: 9056015dd48d0a2489bb9d6938c06ab8, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 3b74b7483e1f07541bf592d274772afa, type: 3}
     - {fileID: 21300000, guid: fabc3d6b4674bcd409162c2098b30967, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 81c1075b4d269a647be26812b1828669, type: 3}
+    - {fileID: 21300000, guid: 8c4d00f89015bb34d9e2368b639753e3, type: 3}
   west:
     idleSprite: {fileID: 21300000, guid: 2c78410f988dc3d438801c5302d3badd, type: 3}
     walkFrames:
     - {fileID: 21300000, guid: 5bfb80b79e4b3f64997c514d4ba83ec7, type: 3}
     - {fileID: 21300000, guid: 3ef12c0924f7acd4aab3770f671914f3, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 6874507dca2fe96499a030ced3ff9ef8, type: 3}
+    - {fileID: 21300000, guid: 5ecbc090c38e5c64d95fad60e1fd94e3, type: 3}
   northWest:
     idleSprite: {fileID: 21300000, guid: 4f9a83d0c87606547a035e2b03de3f40, type: 3}
     walkFrames:
-    - {fileID: 21300000, guid: 051e1979ab22bf64aba1004634b75747, type: 3}
-    - {fileID: 21300000, guid: 9db7ab158e885e2448d2fcb169da4ebd, type: 3}
+    - {fileID: 21300000, guid: d91a9cf035772d5468c5810d505542dd, type: 3}
+    - {fileID: 21300000, guid: fc67791aa39b9084a87c7c3136f48435, type: 3}
+    jumpFrames:
+    - {fileID: 21300000, guid: 1cfeaacc2369eee46a84a3179040c70e, type: 3}
+    - {fileID: 21300000, guid: 9442d9933b6595740aafbf3b4de92b8f, type: 3}
   arrowTransform: {fileID: 1765220602}
   collectibleTag: Collectible
   trackerScanInterval: 0.2
@@ -1550,7 +1602,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &488186642
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2575,7 +2627,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 120}
+  m_AnchoredPosition: {x: 0, y: 185}
   m_SizeDelta: {x: 1080, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &757469053
@@ -2598,10 +2650,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: collectible
+  m_text: 'Objective: Collect 50% of collectible'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 20662e09bee361f47ba3bae1c39d67bf, type: 2}
+  m_sharedMaterial: {fileID: 2469688488467270407, guid: 20662e09bee361f47ba3bae1c39d67bf, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2625,13 +2677,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 45
-  m_fontSizeBase: 45
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 32
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -4099,7 +4151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1588725056
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5145,7 +5197,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_TargetDisplay: 0
 --- !u!224 &2126116046
 RectTransform:

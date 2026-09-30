@@ -107,13 +107,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StopSignEnemy
   maxHealth: 25
   moveSpeed: 3.5
-  attackDamage: 10
+  attackDamage: 1
   attackRate: 1
   attackDistance: 1.2
   deathSound: {fileID: 0}
   deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
+  damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
   yellowSignSprite: {fileID: 6358040702757662528, guid: f565245fa986b654a88c7a5022e3874f, type: 3}
   redSignSprite: {fileID: 7909341408540862525, guid: e2e84861b457f3a459ac1d10830cbe99, type: 3}
   greenSignSprite: {fileID: 6889109067770806722, guid: 0ea5be2247ff24b46b4394bb315dec41, type: 3}
@@ -122,7 +123,7 @@ MonoBehaviour:
   greenSound: {fileID: 0}
   initialDelay: 12
   minSpawnInterval: 12
-  maxSpawnInterval: 22
+  maxSpawnInterval: 24
 --- !u!114 &-8778951421000050208
 MonoBehaviour:
   m_ObjectHideFlags: 0
