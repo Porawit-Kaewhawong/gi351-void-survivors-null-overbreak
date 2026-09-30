@@ -32,7 +32,32 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
     {
         base.Awake();
         SetupLineRenderer();
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        ResetTelegraphState();
+    }
+
+    private void OnDisable()
+    {
+        ResetTelegraphState();
+    }
+
+    /// <summary>
+    /// Completely resets telegraph, line renderer, timers, and coroutines when pooled/disabled.
+    /// </summary>
+    private void ResetTelegraphState()
+    {
+        StopAllCoroutines();
+        isTelegraphing = false;
         throwTimer = throwInterval;
+
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
     }
 
     protected override void Update()
@@ -131,7 +156,6 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
     {
         if (playerTransform == null) return;
 
-        // Calculate direct offset towards player, ignoring FaceCamera rotation
         Vector3 dirToPlayer = (playerTransform.position - transform.position);
         dirToPlayer.y = 0f;
         dirToPlayer.Normalize();
@@ -174,11 +198,8 @@ public class PoorlyDrawnCharacterEnemy : EnemyBase
 
         Vector3 throwDir = (playerTransform.position + Vector3.up * 0.5f - spawnPos).normalized;
         rb.AddForce(throwDir * throwForce + Vector3.up * 1.5f, ForceMode.Impulse);
-
-        Debug.Log($"[{gameObject.name}] Threw a projectile towards the player!");
     }
 
-    // --- EDITOR GIZMO FOR ATTACK RANGE ---
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

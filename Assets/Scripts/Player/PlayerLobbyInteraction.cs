@@ -9,6 +9,7 @@ public class PlayerLobbyInteraction : MonoBehaviour
     public KeyCode interactKey = KeyCode.E;
 
     private Camera cam;
+    private LobbySelection currentTarget;
 
     private void Start()
     {
@@ -18,13 +19,8 @@ public class PlayerLobbyInteraction : MonoBehaviour
 
     private void Update()
     {
-        Ray ray = GetInteractionRay();
-        Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.red);
-
-        if (Input.GetKeyDown(interactKey) || Input.GetMouseButtonDown(0))
-        {
-            TryInteract(ray);
-        }
+        HandleHoverDetection();
+        HandleInteractionInput();
     }
 
     private Ray GetInteractionRay()
@@ -36,16 +32,51 @@ public class PlayerLobbyInteraction : MonoBehaviour
             : cam.ScreenPointToRay(Input.mousePosition);
     }
 
-    private void TryInteract(Ray ray)
+    private void HandleHoverDetection()
     {
+        Ray ray = GetInteractionRay();
+        Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.cyan);
+
         if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactableLayer))
         {
             LobbySelection pedestal = hit.collider.GetComponentInParent<LobbySelection>();
+
             if (pedestal != null)
             {
-                pedestal.SelectThisOption();
-                Debug.Log($"Player Selected: {pedestal.data?.title}");
+                if (currentTarget != pedestal)
+                {
+                    // Deactivate previous hover UI
+                    if (currentTarget != null) currentTarget.SetHoverState(false);
+
+                    // Activate new hover target UI
+                    currentTarget = pedestal;
+                    currentTarget.SetHoverState(true);
+                }
+                return;
             }
+        }
+
+        // Clear hover state if looking away or aiming at void
+        if (currentTarget != null)
+        {
+            currentTarget.SetHoverState(false);
+            currentTarget = null;
+        }
+    }
+
+    private void HandleInteractionInput()
+    {
+        // Only trigger selection when pressing the specified interact key (E)
+        if (currentTarget != null && Input.GetKeyDown(interactKey))
+        {
+            LobbySelection selected = currentTarget;
+
+            // Clear hover before confirming selection
+            currentTarget.SetHoverState(false);
+            currentTarget = null;
+
+            selected.SelectThisOption();
+            Debug.Log($"Player Selected: {selected.data?.title}");
         }
     }
 }

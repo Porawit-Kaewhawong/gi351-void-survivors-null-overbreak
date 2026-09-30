@@ -116,6 +116,19 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [Header("3D World Space Lobby Text")]
+    [Tooltip("World Space TextMeshPro object placed above the lobby selection area.")]
+    public TextMeshPro lobbyPhaseWorldText;
+
+    [Header("Juice & Screen FX")]
+    [Tooltip("Intensity of camera shake during 100% full clear screen pulse.")]
+    public float fullClearShakeMagnitude = 0.45f;
+
+    [Tooltip("Duration of camera shake in seconds.")]
+    public float fullClearShakeDuration = 0.35f;
+
+    private Coroutine collapseFlashCoroutine;
+
     [Header("Audio Settings")]
     [Tooltip("Sound clip played when a lobby option selection is confirmed.")]
     public AudioClip selectionSound;
@@ -128,6 +141,12 @@ public class GameManager : MonoBehaviour
 
     [Range(0f, 1f)]
     public float levelCompleteVolume = 1f;
+
+    [Tooltip("Sound clip played when full 100% map clear wipe triggers.")]
+    public AudioClip fullClearSound;
+
+    [Range(0f, 1f)]
+    public float fullClearVolume = 1f;
 
     [Header("Background Music")]
     [Tooltip("Music played while resting or selecting options in the lobby.")]
@@ -157,14 +176,34 @@ public class GameManager : MonoBehaviour
     public GameObject finishPortalPrefab;
     public Vector3 finishOffsetAboveStart = new Vector3(0f, 1f, 0f);
 
-    [Header("Lobby Environment & Spawn Setup")]
-    public Transform lobbySpawnPoint;
-    public GameObject lobbyEnvironmentRoot;
-    public Transform[] optionSpawnPoints;
-    public Transform startPortalSpawnPoint;
-    public GameObject startPortalPrefab;
+    [Header("Exit & Collapse Mechanics")]
+    [Tooltip("Percentage of items required to open the exit portal (e.g., 0.5 = 50%).")]
+    [Range(0.1f, 1f)]
+    public float exitUnlockPercentage = 0.5f;
 
-    [Header("Enemy Spawning & Surface Settings")]
+    [Tooltip("Rate at which the Collapse Meter fills per second after exit opens (in %).")]
+    public float collapseMeterBuildRate = 4f;
+
+    [Tooltip("Percentage reduced from Collapse Meter per item collected after exit opens.")]
+    public float itemCoolantAmount = 12f;
+
+    [Tooltip("Permanent upgrade coins earned per second survived after exit opens.")]
+    public float coinsPerSecondPostExit = 2f;
+
+    [Tooltip("Multiplier applied to enemy speed when Collapse Meter reaches 100%.")]
+    public float collapseSpeedMultiplier = 1.5f;
+
+    [Tooltip("Multiplier applied to enemy health when Collapse Meter reaches 100%.")]
+    public float collapseHealthMultiplier = 1.5f;
+
+    [Header("Optional UI Elements for Collapse & Coins")]
+    public TextMeshProUGUI collapseMeterText;
+    public TextMeshProUGUI coinsText;
+
+    [Header("Enemy Spawning & Performance Settings")]
+    [Tooltip("Maximum active enemies allowed on screen simultaneously to prevent lag.")]
+    public int maxActiveEnemies = 50;
+
     [Tooltip("Time interval in seconds between continuous enemy spawn waves.")]
     public float enemySpawnInterval = 5f;
 
@@ -183,6 +222,13 @@ public class GameManager : MonoBehaviour
     [Tooltip("Maximum downward scan distance.")]
     public float maxRaycastDistance = 35f;
 
+    [Header("Lobby Environment & Spawn Setup")]
+    public Transform lobbySpawnPoint;
+    public GameObject lobbyEnvironmentRoot;
+    public Transform[] optionSpawnPoints;
+    public Transform startPortalSpawnPoint;
+    public GameObject startPortalPrefab;
+
     [Header("Progression State")]
     public int currentLevel = 1;
 
@@ -193,12 +239,19 @@ public class GameManager : MonoBehaviour
     public List<EnemyBuffOption> enemyBuffOptions = new List<EnemyBuffOption>();
     public List<LevelRuleOption> levelRuleOptions = new List<LevelRuleOption>();
 
+    // Public Properties
     public int TotalItems { get; private set; } = 0;
     public int CollectedItems { get; private set; } = 0;
+    public float CollapseMeter { get; private set; } = 0f;
+    public bool ExitUnlocked { get; private set; } = false;
+    public int CollapseLevel { get; private set; } = 0;
+    public float PermanentCoinsEarned { get; private set; } = 0f;
+    public float PostExitSurvivalTime { get; private set; } = 0f;
 
     private bool isFinished = false;
+    private bool hasTriggeredFullClear = false;
     private bool isProcessingSelection = false; // State guard against double triggers
-    private int currentLobbyPhase = 0;          // 0 = 1st selection, 1 = 2nd selection
+    private int currentLobbyPhase = 0;          // 0 = 1st selection, 1 = 2nd selection, 2 = 3rd selection
 
     private GameObject activeFinishPortal;
     private GameObject activeStartPortal;
@@ -246,6 +299,51 @@ public class GameManager : MonoBehaviour
     {
         OpenLobbyForCurrentLevel();
         UpdateUI();
+    }
+
+    private void Update()
+    {
+        // Continuously evaluate BGM pitch/speed based on collapse state
+        UpdateCollapseBGM();
+
+        // Collapse Meter & Survival Coin Loop
+        if (ExitUnlocked && !isFinished)
+        {
+            // Advance collapse meter
+            CollapseMeter += collapseMeterBuildRate * Time.deltaTime;
+
+            // Accumulate survival time and permanent coins
+            PostExitSurvivalTime += Time.deltaTime;
+            PermanentCoinsEarned += coinsPerSecondPostExit * Time.deltaTime;
+
+            // Check for 100% Collapse Overload (Repeatable Loop)
+            if (CollapseMeter >= 100f)
+            {
+                CollapseMeter -= 100f; // Reset meter back to 0% (retaining overflow)
+                CollapseLevel++;
+                OnCollapseTriggered();
+            }
+
+            UpdateUI();
+        }
+    }
+
+    private void OnCollapseTriggered()
+    {
+        Debug.LogWarning($"[GameManager] Collapse level reached LVL {CollapseLevel}! Refreshing enemy stats on field.");
+
+        // Trigger visual juice
+        FlashCollapseText();
+        TriggerCameraShake(0.2f, 0.2f); // Quick warning rumble
+
+        // Instantly apply the new stat scaling to all currently active enemies on screen
+        foreach (GameObject enemyObj in activeEnemies)
+        {
+            if (enemyObj != null && enemyObj.TryGetComponent<EnemyBase>(out var enemyScript))
+            {
+                enemyScript.ApplyEnemyBuffs();
+            }
+        }
     }
 
     // --- MUSIC CONTROLLER ---
@@ -296,6 +394,19 @@ public class GameManager : MonoBehaviour
             if (modifier is EnemyBuffOption buff && buff.targetStat == stat)
             {
                 total += buff.buffValue;
+            }
+        }
+
+        // Apply compounding collapse stack multipliers
+        if (CollapseLevel > 0)
+        {
+            if (stat == EnemyStatType.Health)
+            {
+                total *= Mathf.Pow(collapseHealthMultiplier, CollapseLevel);
+            }
+            else if (stat == EnemyStatType.MoveSpeed)
+            {
+                total *= Mathf.Pow(collapseSpeedMultiplier, CollapseLevel);
             }
         }
 
@@ -366,7 +477,12 @@ public class GameManager : MonoBehaviour
     {
         TotalItems = 0;
         CollectedItems = 0;
+        CollapseMeter = 0f;
+        CollapseLevel = 0; // Reset collapse stack level
+        PostExitSurvivalTime = 0f;
+        ExitUnlocked = false;
         isFinished = false;
+        hasTriggeredFullClear = false;
 
         if (activeFinishPortal != null)
         {
@@ -394,13 +510,29 @@ public class GameManager : MonoBehaviour
         if (isFinished) return;
 
         CollectedItems++;
-        UpdateUI();
         AnimateItemCounter(); // Trigger punch animation on collect
 
-        if (TotalItems > 0 && CollectedItems >= TotalItems)
+        // Check Exit Unlock Threshold (default 50%)
+        int requiredItemsForExit = Mathf.Max(1, Mathf.CeilToInt(TotalItems * exitUnlockPercentage));
+        if (!ExitUnlocked && CollectedItems >= requiredItemsForExit)
         {
-            TriggerFinish();
+            ExitUnlocked = true;
+            TriggerFinishPortal();
         }
+
+        // Post-Exit Coolant Mechanism
+        if (ExitUnlocked)
+        {
+            CollapseMeter = Mathf.Clamp(CollapseMeter - itemCoolantAmount, 0f, 100f);
+        }
+
+        // 100% Full Map Clear Climax
+        if (TotalItems > 0 && CollectedItems >= TotalItems && !hasTriggeredFullClear)
+        {
+            Trigger100PercentFullClearPulse();
+        }
+
+        UpdateUI();
     }
 
     private void UpdateUI()
@@ -408,6 +540,20 @@ public class GameManager : MonoBehaviour
         if (itemCounterText != null)
         {
             itemCounterText.text = string.Format(displayFormat, CollectedItems, TotalItems);
+        }
+
+        if (collapseMeterText != null)
+        {
+            collapseMeterText.gameObject.SetActive(ExitUnlocked);
+            string levelText = CollapseLevel > 0 ? $" (LVL {CollapseLevel})" : "";
+            collapseMeterText.text = $"Collapse: {Mathf.RoundToInt(CollapseMeter)}%{levelText}";
+            collapseMeterText.color = CollapseLevel > 0 ? Color.red : (CollapseMeter > 70f ? Color.yellow : Color.white);
+        }
+
+        if (coinsText != null)
+        {
+            coinsText.gameObject.SetActive(ExitUnlocked);
+            coinsText.text = $"Coins: +{Mathf.FloorToInt(PermanentCoinsEarned)}";
         }
     }
 
@@ -461,19 +607,45 @@ public class GameManager : MonoBehaviour
         counterAnimationCoroutine = null;
     }
 
-    public void TriggerFinish()
+    private void TriggerFinishPortal()
     {
-        if (isFinished) return;
-        isFinished = true;
-
         PlayLevelCompleteSound();
 
         if (finishPortalPrefab != null && MapGenerator.Instance != null && activeFinishPortal == null)
         {
             Vector3 spawnPosition = MapGenerator.Instance.StartChunkWorldPosition + finishOffsetAboveStart;
             activeFinishPortal = Instantiate(finishPortalPrefab, spawnPosition, Quaternion.identity);
-            Debug.Log("[GameManager] Level Complete! Finish Portal spawned.");
+            Debug.Log("[GameManager] Exit Unlocked! Finish Portal spawned.");
         }
+    }
+
+    private void Trigger100PercentFullClearPulse()
+    {
+        hasTriggeredFullClear = true;
+        Debug.Log("[GameManager] 100% Full Clear achieved! Clearing all active enemies.");
+
+        // Trigger full clear camera shake
+        TriggerCameraShake(fullClearShakeDuration, fullClearShakeMagnitude);
+
+        // Play full clear pulse sound
+        if (fullClearSound != null)
+        {
+            AudioSource.PlayClipAtPoint(
+                fullClearSound,
+                Camera.main != null ? Camera.main.transform.position : transform.position,
+                fullClearVolume
+            );
+        }
+
+        // Destroy/wipe all current enemies on screen as a reward
+        ClearEnemies();
+    }
+
+    public void TriggerFinish()
+    {
+        if (isFinished) return;
+        isFinished = true;
+        OnLevelCompleted();
     }
 
     private void PlayLevelCompleteSound()
@@ -497,14 +669,16 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
-        // Hide item counter while in lobby selection
-        if (itemCounterText != null)
-        {
-            itemCounterText.gameObject.SetActive(false);
-        }
+        // Hide item counter and collapse elements in lobby
+        if (itemCounterText != null) itemCounterText.gameObject.SetActive(false);
+        if (collapseMeterText != null) collapseMeterText.gameObject.SetActive(false);
+        if (coinsText != null) coinsText.gameObject.SetActive(false);
 
         currentLobbyPhase = 0; // Reset back to first choice
         isProcessingSelection = false;
+        ExitUnlocked = false;
+        CollapseLevel = 0; // Reset collapse level stack
+
         PlayMusic(lobbyMusic);
         StopSpawningEnemies();
         ClearLobbyObjects();
@@ -515,6 +689,9 @@ public class GameManager : MonoBehaviour
 
     private void Spawn3DSelectionOptions(LobbySelectionType type)
     {
+        // Update 3D World Space Text indicator
+        UpdateLobbyPhaseWorldText(type);
+
         List<LobbyOption> optionsPool = FetchOptionPoolForType(type);
         int count = Mathf.Min(optionsPool.Count, optionSpawnPoints.Length);
 
@@ -538,6 +715,52 @@ public class GameManager : MonoBehaviour
             LobbySelection pedestal = spawnedObj.GetComponent<LobbySelection>() ?? spawnedObj.AddComponent<LobbySelection>();
             pedestal.SetupPedestal(optionData, type);
             activeSpawnedPedestals.Add(spawnedObj);
+        }
+    }
+
+    private void UpdateLobbyPhaseWorldText(LobbySelectionType type)
+    {
+        if (lobbyPhaseWorldText == null) return;
+
+        lobbyPhaseWorldText.gameObject.SetActive(true);
+        string categoryName = GetCategoryDisplayName(type);
+
+        // Header: Round index | Subtitle: Category name
+        lobbyPhaseWorldText.text = $"<b>CHOICE {currentLobbyPhase + 1} / 3</b>\n<size=70%><color=#FFCC00>{categoryName}</color></size>";
+    }
+
+    private string GetCategoryDisplayName(LobbySelectionType type)
+    {
+        switch (type)
+        {
+            case LobbySelectionType.PlayerWeapon: return "PLAYER WEAPON";
+            case LobbySelectionType.EnemySelection: return "ENEMY TYPE";
+            case LobbySelectionType.PlayerBuff: return "PLAYER BUFF";
+            case LobbySelectionType.EnemyBuff: return "ENEMY BUFF";
+            case LobbySelectionType.LevelRule: return "LEVEL RULE MODIFIER";
+            default: return "UNKNOWN CATEGORY";
+        }
+    }
+
+    private void Spawn3DStartPortal()
+    {
+        if (lobbyPhaseWorldText != null)
+        {
+            lobbyPhaseWorldText.gameObject.SetActive(true);
+            lobbyPhaseWorldText.text = "<b>ALL CHOICES COMPLETE!</b>\n<size=70%><color=#00FF88>ENTER START PORTAL</color></size>";
+        }
+
+        if (startPortalPrefab != null && startPortalSpawnPoint != null)
+        {
+            activeStartPortal = Instantiate(startPortalPrefab, startPortalSpawnPoint.position, startPortalSpawnPoint.rotation, startPortalSpawnPoint);
+            if (activeStartPortal.GetComponent<ToLevelPortal>() == null)
+            {
+                activeStartPortal.AddComponent<ToLevelPortal>();
+            }
+        }
+        else
+        {
+            StartSelectedLevel();
         }
     }
 
@@ -565,24 +788,24 @@ public class GameManager : MonoBehaviour
 
             ActiveModifiers.Add(chosenOption);
             PlaySelectionSound();
-            Debug.Log($"[GameManager] Selection ({currentLobbyPhase + 1}/2) Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
+            Debug.Log($"[GameManager] Selection ({currentLobbyPhase + 1}/3) Confirmed: '{chosenOption.title}' (Total Active Modifiers: {ActiveModifiers.Count})");
         }
 
         ClearLobbyObjects();
 
-        // Check if player needs to make the 2nd selection
-        if (currentLobbyPhase == 0)
+        // Check if player needs to make further selections (3 rounds total: 0, 1, 2)
+        if (currentLobbyPhase < 2)
         {
-            currentLobbyPhase = 1;
+            currentLobbyPhase++;
             isProcessingSelection = false; // Reset lock for the next choice
 
-            // Pick a random category excluding LevelRule
+            // Pick a random category excluding LevelRule for rounds 2 and 3
             LobbySelectionType randomSecondaryType = GetRandomNonRuleSelectionType();
             Spawn3DSelectionOptions(randomSecondaryType);
         }
         else
         {
-            // Both selections are finished, spawn start portal
+            // All 3 selections are finished, spawn start portal
             Spawn3DStartPortal();
         }
     }
@@ -621,22 +844,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Spawn3DStartPortal()
-    {
-        if (startPortalPrefab != null && startPortalSpawnPoint != null)
-        {
-            activeStartPortal = Instantiate(startPortalPrefab, startPortalSpawnPoint.position, startPortalSpawnPoint.rotation, startPortalSpawnPoint);
-            if (activeStartPortal.GetComponent<ToLevelPortal>() == null)
-            {
-                activeStartPortal.AddComponent<ToLevelPortal>();
-            }
-        }
-        else
-        {
-            StartSelectedLevel();
-        }
-    }
-
     // --- LEVEL & PLAYER TRANSITIONS ---
 
     private void EquipPlayerWeapons(Transform playerTransform)
@@ -667,7 +874,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- CONTINUOUS ENEMY SPAWN ROUTINE (EVERY 5 SECONDS) ---
+    // --- CONTINUOUS ENEMY SPAWN ROUTINE ---
 
     private IEnumerator ContinuousSpawnEnemiesRoutine(float interval)
     {
@@ -675,43 +882,55 @@ public class GameManager : MonoBehaviour
 
         while (true)
         {
-            Vector3 currentSpawnOrigin = Vector3.zero;
-            GameObject playerObj = GameObject.FindWithTag("Player");
+            // Clean destroyed/null enemies from list before checking cap
+            activeEnemies.RemoveAll(e => e == null);
 
-            if (playerObj != null)
+            // Respect hard active enemy cap to eliminate lag
+            if (activeEnemies.Count < maxActiveEnemies)
             {
-                currentSpawnOrigin = playerObj.transform.position;
-            }
-            else if (MapGenerator.Instance != null)
-            {
-                currentSpawnOrigin = MapGenerator.Instance.StartChunkWorldPosition;
-            }
+                Vector3 currentSpawnOrigin = Vector3.zero;
+                GameObject playerObj = GameObject.FindWithTag("Player");
 
-            List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
-            foreach (var modifier in ActiveModifiers)
-            {
-                if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
+                if (playerObj != null)
                 {
-                    activeEnemyTypes.Add(enemyOpt);
+                    currentSpawnOrigin = playerObj.transform.position;
                 }
-            }
-
-            if (activeEnemyTypes.Count > 0)
-            {
-                foreach (var enemyOpt in activeEnemyTypes)
+                else if (MapGenerator.Instance != null)
                 {
-                    for (int i = 0; i < enemyOpt.enemyCount; i++)
+                    currentSpawnOrigin = MapGenerator.Instance.StartChunkWorldPosition;
+                }
+
+                List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
+                foreach (var modifier in ActiveModifiers)
+                {
+                    if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
                     {
-                        SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, currentSpawnOrigin);
+                        activeEnemyTypes.Add(enemyOpt);
                     }
                 }
 
-                int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
-                for (int i = 0; i < extraEnemyCount; i++)
+                if (activeEnemyTypes.Count > 0)
                 {
-                    int randomIndex = Random.Range(0, activeEnemyTypes.Count);
-                    GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
-                    SpawnSingleEnemy(randomPrefab, currentSpawnOrigin);
+                    foreach (var enemyOpt in activeEnemyTypes)
+                    {
+                        if (activeEnemies.Count >= maxActiveEnemies) break;
+
+                        for (int i = 0; i < enemyOpt.enemyCount; i++)
+                        {
+                            if (activeEnemies.Count >= maxActiveEnemies) break;
+                            SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, currentSpawnOrigin);
+                        }
+                    }
+
+                    int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
+                    for (int i = 0; i < extraEnemyCount; i++)
+                    {
+                        if (activeEnemies.Count >= maxActiveEnemies) break;
+
+                        int randomIndex = Random.Range(0, activeEnemyTypes.Count);
+                        GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
+                        SpawnSingleEnemy(randomPrefab, currentSpawnOrigin);
+                    }
                 }
             }
 
@@ -730,19 +949,20 @@ public class GameManager : MonoBehaviour
 
     private void SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
     {
-        if (TryGetValidPlatformPosition(spawnOrigin, out Vector3 validSpawnPos))
-        {
-            GameObject spawnedEnemy = Instantiate(prefab, validSpawnPos, Quaternion.identity);
-            RegisterEnemy(spawnedEnemy);
-        }
-        else
+        Vector3 spawnPos;
+
+        if (!TryGetValidPlatformPosition(spawnOrigin, out spawnPos))
         {
             Vector2 safeOffset = Random.insideUnitCircle.normalized * minEnemySpawnDistance;
-            Vector3 fallbackPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
-
-            GameObject spawnedEnemy = Instantiate(prefab, fallbackPos, Quaternion.identity);
-            RegisterEnemy(spawnedEnemy);
+            spawnPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
         }
+
+        // Retrieve from pool if available, fallback to Instantiate
+        GameObject spawnedEnemy = (SimpleEnemyPool.Instance != null)
+            ? SimpleEnemyPool.Instance.GetEnemy(prefab, spawnPos, Quaternion.identity)
+            : Instantiate(prefab, spawnPos, Quaternion.identity);
+
+        RegisterEnemy(spawnedEnemy);
     }
 
     private bool TryGetValidPlatformPosition(Vector3 origin, out Vector3 validPosition)
@@ -777,6 +997,13 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        if (lobbyPhaseWorldText != null)
+        {
+            lobbyPhaseWorldText.gameObject.SetActive(false);
+        }
+
+        ResetItemCount();
+
         // Reveal item counter when entering actual level
         if (itemCounterText != null)
         {
@@ -831,7 +1058,7 @@ public class GameManager : MonoBehaviour
         {
             MapGenerator.Instance.ClearMap();
 
-            if (currentLevel % 2 == 0)
+            if (currentLevel % 3 == 0)
             {
                 MapGenerator.Instance.mapRadius++;
             }
@@ -842,13 +1069,35 @@ public class GameManager : MonoBehaviour
             lobbyEnvironmentRoot.SetActive(true);
         }
 
+        int totalCoins = PlayerPrefs.GetInt("TotalCoins", 0) + Mathf.FloorToInt(PermanentCoinsEarned);
+        PlayerPrefs.SetInt("TotalCoins", totalCoins);
+        PlayerPrefs.Save();
+
+        SavePermanentCoins();
+
         TeleportPlayerToLobby();
         OpenLobbyForCurrentLevel();
     }
 
+    // Call when player dies
     public void OnPlayerDied()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        if (RunSummaryUI.Instance != null)
+        {
+            RunSummaryUI.Instance.ShowDeathSummary();
+        }
+        else
+        {
+            // Fallback reload if UI manager is not present
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+
+    // Call when player enters the exit portal
+    public void OnStageExitReached()
+    {
+        // Proceed directly to next level/lobby transition without opening summary UI
+        OnLevelCompleted();
     }
 
     // --- ENEMY REGISTRATION & CLEANUP ---
@@ -858,6 +1107,14 @@ public class GameManager : MonoBehaviour
         if (enemy != null && !activeEnemies.Contains(enemy))
         {
             activeEnemies.Add(enemy);
+        }
+    }
+
+    public void UnregisterEnemy(GameObject enemy)
+    {
+        if (enemy != null && activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Remove(enemy);
         }
     }
 
@@ -983,5 +1240,91 @@ public class GameManager : MonoBehaviour
         }
 
         return selectedChoices;
+    }
+
+    public void SavePermanentCoins()
+    {
+        int coinsToSave = Mathf.FloorToInt(PermanentCoinsEarned);
+        if (coinsToSave <= 0) return;
+
+        int totalSaved = PlayerPrefs.GetInt("TotalPermanentCoins", 0);
+        PlayerPrefs.SetInt("TotalPermanentCoins", totalSaved + coinsToSave);
+        PlayerPrefs.Save();
+
+        Debug.Log($"[GameManager] Saved {coinsToSave} coins! Total lifetime coins: {totalSaved + coinsToSave}");
+        PermanentCoinsEarned = 0f; // Reset buffer
+    }
+
+    // --- CAMERA SHAKE ROUTINE ---
+    public void TriggerCameraShake(float duration, float magnitude)
+    {
+        if (Camera.main != null)
+        {
+            StartCoroutine(CameraShakeRoutine(duration, magnitude));
+        }
+    }
+
+    private IEnumerator CameraShakeRoutine(float duration, float magnitude)
+    {
+        Transform camTransform = Camera.main.transform;
+        Vector3 originalPos = camTransform.localPosition;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
+
+            camTransform.localPosition = originalPos + new Vector3(x, y, 0f);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        camTransform.localPosition = originalPos;
+    }
+
+    // --- COLLAPSE UI POP ANIMATION ---
+    private void FlashCollapseText()
+    {
+        if (collapseMeterText == null) return;
+        if (collapseFlashCoroutine != null) StopCoroutine(collapseFlashCoroutine);
+        collapseFlashCoroutine = StartCoroutine(FlashCollapseTextRoutine());
+    }
+
+    private IEnumerator FlashCollapseTextRoutine()
+    {
+        Vector3 baseScale = Vector3.one;
+        Vector3 targetScale = baseScale * 1.4f;
+        float duration = 0.3f;
+        float elapsed = 0f;
+
+        collapseMeterText.color = Color.yellow;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            collapseMeterText.transform.localScale = Vector3.Lerp(targetScale, baseScale, t);
+            yield return null;
+        }
+
+        collapseMeterText.transform.localScale = baseScale;
+    }
+
+    private void UpdateCollapseBGM()
+    {
+        if (AudioManager.Instance == null) return;
+
+        if (ExitUnlocked)
+        {
+            // Smoothly scale BGM pitch from 1.0x up to 1.3x based on CollapseLevel
+            float bgmPitch = 1f + (CollapseLevel * 0.05f);
+            AudioManager.Instance.SetBGMPitch(Mathf.Min(bgmPitch, 1.3f));
+        }
+        else
+        {
+            // Reset BGM speed/pitch to normal when exit is locked or in lobby
+            AudioManager.Instance.SetBGMPitch(1f);
+        }
     }
 }

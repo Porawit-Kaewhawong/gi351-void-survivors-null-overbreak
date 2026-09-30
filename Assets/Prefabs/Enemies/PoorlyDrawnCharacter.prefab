@@ -119,6 +119,7 @@ GameObject:
   - component: {fileID: 6512573332161822740}
   - component: {fileID: 5716664665884684227}
   - component: {fileID: 6614709933751414428}
+  - component: {fileID: -254198127740258659}
   m_Layer: 0
   m_Name: PoorlyDrawnCharacter
   m_TagString: Untagged
@@ -154,7 +155,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eede386de65ac6c4393d683932774649, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PoorlyDrawnCharacterEnemy
-  maxHealth: 20
+  maxHealth: 10
   moveSpeed: 2.5
   attackDamage: 1
   attackRate: 1
@@ -192,3 +193,17 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-254198127740258659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5420205998641944471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

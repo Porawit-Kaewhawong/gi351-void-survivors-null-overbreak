@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6620849253714873466}
   - component: {fileID: 5258416754557929549}
   - component: {fileID: 4939343110633386132}
+  - component: {fileID: -8778951421000050208}
   m_Layer: 0
   m_Name: StopSignEnemy
   m_TagString: Untagged
@@ -104,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3d95da7856ba3f4d86c1d61bfb83d78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StopSignEnemy
-  maxHealth: 50
+  maxHealth: 25
   moveSpeed: 3.5
   attackDamage: 10
   attackRate: 1
@@ -122,3 +123,17 @@ MonoBehaviour:
   initialDelay: 12
   minSpawnInterval: 12
   maxSpawnInterval: 22
+--- !u!114 &-8778951421000050208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6839315494490371546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

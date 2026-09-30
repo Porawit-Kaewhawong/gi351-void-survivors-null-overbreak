@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2210828428758650158}
   - component: {fileID: 4649817149646023448}
   - component: {fileID: 4534309278539708237}
+  - component: {fileID: -2484379455762081039}
   m_Layer: 0
   m_Name: Filter Placer
   m_TagString: Untagged
@@ -125,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ca5be5c15611a41a94653c542e15e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FilterPlacerEnemy
-  maxHealth: 50
+  maxHealth: 25
   moveSpeed: 3.5
   attackDamage: 10
   attackRate: 1
@@ -134,8 +135,21 @@ MonoBehaviour:
   deathSoundVolume: 1
   destroyOnFall: 1
   fallDistance: 20
-  moveSpeed: 2.5
   heightOffset: 1
   filterDuration: 3
   filterOverlayColor: {r: 0.2, g: 0.8, b: 0.3, a: 0.65}
   shakeIntensity: 0.08
+--- !u!114 &-2484379455762081039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9112133899006945850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7779031616973018680}
   - component: {fileID: 1673692801995647675}
   - component: {fileID: 1174957432896784872}
+  - component: {fileID: 4406733876016589767}
   m_Layer: 0
   m_Name: TheWatcherManager
   m_TagString: Untagged
@@ -104,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d362199747990cd43994730684b8676e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TheWatcherEnemy
-  maxHealth: 50
+  maxHealth: 25
   moveSpeed: 3.5
   attackDamage: 10
   attackRate: 1
@@ -120,3 +121,17 @@ MonoBehaviour:
   initialDelay: 5
   minSpawnInterval: 20
   maxSpawnInterval: 40
+--- !u!114 &4406733876016589767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490442129511756057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

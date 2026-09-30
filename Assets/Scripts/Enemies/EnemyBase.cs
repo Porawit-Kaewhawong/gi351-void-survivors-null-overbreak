@@ -29,6 +29,10 @@ public abstract class EnemyBase : MonoBehaviour
     public bool destroyOnFall = true;
     public float fallDistance = 20f;
 
+    [Header("Damage Pop-up Settings")]
+    [Tooltip("Prefab containing FloatingDamageText component.")]
+    public GameObject damageTextPrefab;
+
     protected float attackCooldownTimer;
     protected Vector3 spawnPosition;
     protected Quaternion spawnRotation;
@@ -36,17 +40,26 @@ public abstract class EnemyBase : MonoBehaviour
     // Cached base stats for scaling calculations
     protected float baseMaxHealth;
     protected float baseMoveSpeed;
+    protected SpriteFlash spriteFlasher;
 
     protected virtual void Awake()
     {
         baseMaxHealth = maxHealth;
         baseMoveSpeed = moveSpeed;
 
-        ApplyEnemyBuffs();
-
         spawnPosition = transform.position;
         spawnRotation = transform.rotation;
+
+        // Find SpriteFlash anywhere on self or child objects
+        spriteFlasher = GetComponentInChildren<SpriteFlash>();
+    }
+
+    protected virtual void OnEnable()
+    {
+        // Re-evaluate stats, reset HP, find player, and reset attack cooldown every time object is retrieved from pool
+        ApplyEnemyBuffs();
         FindPlayer();
+        attackCooldownTimer = 0f;
     }
 
     protected virtual void Update()
@@ -96,13 +109,28 @@ public abstract class EnemyBase : MonoBehaviour
     {
         if (damage <= 0f || CurrentHealth <= 0f) return;
 
-        CurrentHealth -= damage;
-        Debug.Log($"[{gameObject.name}] Took {damage} DMG. Remaining HP: {CurrentHealth}/{maxHealth}");
+        if (HitStop.Instance != null) HitStop.Instance.Trigger(0.03f);
 
-        if (CurrentHealth <= 0f)
+        if (spriteFlasher != null)
         {
-            Die();
+            spriteFlasher.Flash();
         }
+
+        // --- SPAWN FLOATING DAMAGE TEXT ---
+        if (damageTextPrefab != null)
+        {
+            Vector3 spawnPos = transform.position + Vector3.up * 1.2f + (Random.insideUnitSphere * 0.3f);
+            spawnPos.z = transform.position.z; // Keep Z plane aligned
+
+            GameObject textObj = Instantiate(damageTextPrefab, spawnPos, Quaternion.identity);
+            if (textObj.TryGetComponent<FloatingDamageText>(out var popup))
+            {
+                popup.Setup(damage);
+            }
+        }
+
+        CurrentHealth -= damage;
+        if (CurrentHealth <= 0f) Die();
     }
 
     protected virtual void Die()
@@ -111,10 +139,25 @@ public abstract class EnemyBase : MonoBehaviour
 
         if (deathSound != null)
         {
-            AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFXAtPosition(deathSound, transform.position, deathSoundVolume);
+            }
+            else
+            {
+                AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
+            }
         }
 
-        Destroy(gameObject);
+        if (SimpleEnemyPool.Instance != null)
+        {
+            SimpleEnemyPool.Instance.ReturnEnemy(gameObject);
+        }
+        else
+        {
+            if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy(gameObject);
+            Destroy(gameObject);
+        }
     }
 
     protected virtual bool TryAttackPlayer()

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5892391419223298905}
   - component: {fileID: 8036977057318061374}
   - component: {fileID: 2958519273092270443}
+  - component: {fileID: 2508665395188475123}
   m_Layer: 0
   m_Name: Follower
   m_TagString: Untagged
@@ -95,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4fd6ca5e8959a4d8b564a3de4392c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFollower
-  maxHealth: 75
+  maxHealth: 30
   moveSpeed: 3.5
   attackDamage: 1
   attackRate: 1
@@ -122,6 +123,20 @@ MonoBehaviour:
   voidYThreshold: -10
   minRescueRadius: 6
   maxRescueRadius: 18
+--- !u!114 &2508665395188475123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 687280552887281312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12
 --- !u!1 &3116921151808610500
 GameObject:
   m_ObjectHideFlags: 0

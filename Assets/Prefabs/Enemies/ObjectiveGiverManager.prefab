@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 956898082490209389}
   - component: {fileID: 7943839403993430033}
+  - component: {fileID: -3443321224294276434}
   m_Layer: 0
   m_Name: ObjectiveGiverManager
   m_TagString: Untagged
@@ -44,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0942a104c9977c74fb05184c434eeb3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TheObjectiveGiverEnemy
-  maxHealth: 50
+  maxHealth: 25
   moveSpeed: 3.5
   attackDamage: 10
   attackRate: 1
@@ -57,3 +58,17 @@ MonoBehaviour:
   initialDelay: 5
   minSpawnInterval: 18
   maxSpawnInterval: 35
+--- !u!114 &-3443321224294276434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365869445532505809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7801882779596812989}
   - component: {fileID: 8143405923243730246}
   - component: {fileID: 8510674580393041121}
+  - component: {fileID: 3730856338686339674}
   m_Layer: 0
   m_Name: AbnormalChair
   m_TagString: Untagged
@@ -46,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c9a48e8da8f89644a27c7ba8a953f25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbnormalChair
-  maxHealth: 30
+  maxHealth: 15
   moveSpeed: 3.5
   attackDamage: 1
   attackRate: 1
@@ -94,6 +95,20 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3730856338686339674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2459689805982476572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12
 --- !u!1 &2811605642423428451
 GameObject:
   m_ObjectHideFlags: 0

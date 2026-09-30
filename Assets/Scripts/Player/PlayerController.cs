@@ -113,6 +113,7 @@ public class PlayerController : MonoBehaviour
     private int lastDirectionIndex = 4; // Default to South
     private float animTimer = 0f;
     private int currentFrameIndex = 0;
+    private SpriteFlash spriteFlasher;
 
     // --- STAT CALCULATIONS ---
 
@@ -166,6 +167,10 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        ApplyMainMenuUpgrades();
+        spriteFlasher = GetComponentInChildren<SpriteFlash>();
+
+        ApplyMainMenuUpgrades();
         heartbeatAudioSource = gameObject.AddComponent<AudioSource>();
         heartbeatAudioSource.playOnAwake = false;
         heartbeatAudioSource.loop = false;
@@ -185,7 +190,6 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
             spriteRenderer.receiveShadows = true;
 
-            // Sync _BaseMap for URP Lit ShadowCaster pass
             if (spriteRenderer.sprite != null && spriteRenderer.material != null)
             {
                 spriteRenderer.material.SetTexture("_BaseMap", spriteRenderer.sprite.texture);
@@ -197,7 +201,24 @@ public class PlayerController : MonoBehaviour
         if (damageOverlayImage != null)
         {
             damageOverlayImage.color = Color.clear;
+            damageOverlayImage.raycastTarget = false; // Prevents blocking mouse clicks on UI elements
         }
+    }
+
+    private void ApplyMainMenuUpgrades()
+    {
+        int hpLvl = PlayerPrefs.GetInt("Upgrade_MaxHP_Level", 0);
+        int speedLvl = PlayerPrefs.GetInt("Upgrade_MoveSpeed_Level", 0);
+        int radiusLvl = PlayerPrefs.GetInt("Upgrade_PickupRadius_Level", 0);
+
+        // Apply +10% Max HP per level
+        baseMaxHealth *= (1f + (hpLvl * 0.10f));
+
+        // Apply +5% Move Speed per level
+        baseMoveSpeed *= (1f + (speedLvl * 0.05f));
+
+        // Apply +15% Pickup Radius per level
+        basePickupRadius *= (1f + (radiusLvl * 0.15f));
     }
 
     private void Update()
@@ -319,6 +340,12 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead || damage <= 0f) return;
 
+        // --- TRIGGER SPRITE FLASH ON SELF & CHILDREN ---
+        if (spriteFlasher != null)
+        {
+            spriteFlasher.Flash(new Color(2f, 0.2f, 0.2f, 1f), 0.15f);
+        }
+
         float previousShield = CurrentShield;
         bool tookShieldDamage = false;
         bool tookHealthDamage = false;
@@ -356,6 +383,8 @@ public class PlayerController : MonoBehaviour
         {
             TriggerDamageFlash(shieldHitColor);
         }
+
+        if (HitStop.Instance != null) HitStop.Instance.Trigger(0.06f);
 
         Debug.Log($"[Player Damaged] Current HP: {CurrentHealth} | Shield: {CurrentShield}");
 
