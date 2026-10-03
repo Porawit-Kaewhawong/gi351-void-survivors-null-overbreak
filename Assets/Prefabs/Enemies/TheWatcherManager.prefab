@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 490442129511756057}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.01056, y: 0.83656, z: -10.46723}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -115,13 +115,44 @@ MonoBehaviour:
   destroyOnFall: 1
   fallDistance: 20
   damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
-  watcherSprite: {fileID: -5623194428626525839, guid: c11aa5cf92a0f0845b9d7ddc705871e7, type: 3}
-  watcherMessage: You have something to retrieve in the fog!
-  customFont: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-  watcherSound: {fileID: 0}
-  initialDelay: 5
-  minSpawnInterval: 20
-  maxSpawnInterval: 40
+  watcherSprite: {fileID: 21300000, guid: 46ace4fff62b76e4583f791162228687, type: 3}
+  watcherSpriteSize: {x: 500, y: 350}
+  flashDuration: 0.25
+  watcherMessage: Go find my stuff in the fog.
+  warningTimeThreshold: 10
+  warningMessage: 10 seconds left.
+  successMessage: Thank you.
+  successDisplayDuration: 2
+  timeoutMessage: You were too late.
+  timeoutDisplayDuration: 2
+  textFontSize: 45
+  customFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  textPositionMode: 3
+  textCustomOffset: {x: 0, y: -175}
+  typewriterSpeed: 0.1
+  letterShakeMagnitude: 5
+  letterShakeSpeed: 25
+  fogItemPrefab: {fileID: 4594314241690102415, guid: 082160d7ef1700d498129ad4fc6277eb, type: 3}
+  collectionTimeLimit: 30
+  spawnAroundPlayer: 1
+  mapCenterPosition: {x: 0, y: 0, z: 0}
+  mapSpawnRadius: 100
+  groundYPosition: 0
+  groundYOffset: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  watcherSound: {fileID: 8300000, guid: d18ffd1c9f82af9479d85f31f0fa0f0f, type: 3}
+  typewriterSound: {fileID: 8300000, guid: 333fa902db8e8bf4f915b2dbfc56795b, type: 3}
+  successSound: {fileID: 8300000, guid: 9296650bd9498d74e9ce641ca3f7e370, type: 3}
+  failSound: {fileID: 8300000, guid: e95d03319ace009448f7a1f8e602a410, type: 3}
+  initialDelay: 20
+  minSpawnInterval: 40
+  maxSpawnInterval: 80
+  applyVisionPenalty: 1
+  visionPenaltyDuration: 10
+  penaltyFarClipPlane: 12.5
+  visionOverlaySprite: {fileID: 0}
 --- !u!114 &4406733876016589767
 MonoBehaviour:
   m_ObjectHideFlags: 0

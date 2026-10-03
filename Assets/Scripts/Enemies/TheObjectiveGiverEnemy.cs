@@ -1,12 +1,37 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 
 public class TheObjectiveGiverEnemy : EnemyBase
 {
-    [Header("Objective Settings")]
+    public override bool IsTargetable => false;
+
+    [Header("Skybox Objective Materials (Optional)")]
+    [Tooltip("Skybox material displayed when 'DO NOT JUMP' objective triggers. If unassigned, tints existing skybox.")]
+    [SerializeField] private Material doNotJumpSkybox;
+
+    [Tooltip("Skybox material displayed when 'DO NOT MOVE' objective triggers. If unassigned, tints existing skybox.")]
+    [SerializeField] private Material doNotMoveSkybox;
+
+    [Header("Skybox Fallback Tint Colors")]
+    [Tooltip("Tint color applied to current skybox if 'doNotJumpSkybox' is unassigned.")]
+    [SerializeField] private Color doNotJumpSkyColor = new Color(1f, 0.85f, 0.2f); // Warning Yellow
+
+    [Tooltip("Tint color applied to current skybox if 'doNotMoveSkybox' is unassigned.")]
+    [SerializeField] private Color doNotMoveSkyColor = new Color(1f, 0.2f, 0.2f); // Critical Red
+
+    [Tooltip("Speed at which the skybox color pulses during the active objective.")]
+    [SerializeField] private float skyboxPulseSpeed = 8f;
+
+    [Header("Objective Duration Settings")]
+    [Tooltip("Duration in seconds that the objective lasts and monitors player actions.")]
+    [SerializeField] private float objectiveDuration = 2.5f;
+
+    [Header("Audio Settings")]
     [Tooltip("Audio clip played when an objective appears.")]
     [SerializeField] private AudioClip objectiveSound;
+
+    [Tooltip("Audio clip played if the player breaks the rule and takes damage.")]
+    [SerializeField] private AudioClip failSound;
 
     [Header("Spawn Timing Settings")]
     [Tooltip("Initial delay before the objective giver can first appear after spawn.")]
@@ -18,10 +43,11 @@ public class TheObjectiveGiverEnemy : EnemyBase
     [Tooltip("Maximum time interval between random objective appearances.")]
     [SerializeField] private float maxSpawnInterval = 35f;
 
-    private GameObject uiCanvasObj;
-    private Text objectiveText;
     private AudioSource audioSource;
     private bool isEventActive = false;
+
+    private Material originalSkybox;
+    private Material runtimeTempSkybox;
 
     protected override void Awake()
     {
@@ -33,27 +59,57 @@ public class TheObjectiveGiverEnemy : EnemyBase
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
+
+        DisableWorldInteraction();
     }
 
     private void Start()
     {
-        // Start the random repeating event loop
         StartCoroutine(RandomObjectiveRoutine());
+    }
+
+    private void OnDisable()
+    {
+        RestoreSkybox();
+    }
+
+    protected override void Update()
+    {
+        // Overridden empty to prevent base enemy movement logic
+    }
+
+    public override void TakeDamage(float amount)
+    {
+        // Non-targetable hazard manager ignores incoming damage
+    }
+
+    private void DisableWorldInteraction()
+    {
+        Collider col3D = GetComponent<Collider>();
+        if (col3D != null) col3D.enabled = false;
+
+        Collider2D col2D = GetComponent<Collider2D>();
+        if (col2D != null) col2D.enabled = false;
+
+        gameObject.layer = 2; // Ignore Raycast
     }
 
     // --- RANDOM REPEATING EVENT LOOP ---
     private IEnumerator RandomObjectiveRoutine()
     {
-        // Wait for initial delay so it doesn't appear right when the player spawns
-        yield return new WaitForSeconds(initialDelay);
+        int safeStackCount = Mathf.Max(1, StackCount);
+        float effectiveInitialDelay = initialDelay / safeStackCount;
+        yield return new WaitForSeconds(effectiveInitialDelay);
 
         while (true)
         {
-            // Wait for a random interval (not too fast, not too slow)
-            float waitTime = Random.Range(minSpawnInterval, maxSpawnInterval);
+            safeStackCount = Mathf.Max(1, StackCount);
+            float minTime = minSpawnInterval / safeStackCount;
+            float maxTime = maxSpawnInterval / safeStackCount;
+
+            float waitTime = Random.Range(minTime, maxTime);
             yield return new WaitForSeconds(waitTime);
 
-            // Trigger objective event multiple times during gameplay
             if (!isEventActive)
             {
                 yield return StartCoroutine(TriggerObjectiveEventRoutine());
@@ -65,14 +121,15 @@ public class TheObjectiveGiverEnemy : EnemyBase
     private IEnumerator TriggerObjectiveEventRoutine()
     {
         isEventActive = true;
-        Debug.Log("[TheObjectiveGiver] Objective event started!");
 
-        // Randomly pick an objective type: 0 = Do Not Jump, 1 = Do Not Move
+        // Pick objective type: 0 = Do Not Jump, 1 = Do Not Move
         int objectiveType = Random.Range(0, 2);
-        string instruction = objectiveType == 0 ? "DO NOT JUMP!" : "DO NOT MOVE!";
+        bool isJumpObjective = (objectiveType == 0);
 
-        // Create large UI in the center of the screen (No black background)
-        CreateObjectiveUI(instruction);
+        Debug.Log($"[TheObjectiveGiver] Objective event started! Skybox active. Mode: {(isJumpObjective ? "DO NOT JUMP" : "DO NOT MOVE")}");
+
+        // Save active skybox and apply objective skybox/tint
+        ApplyObjectiveSkybox(isJumpObjective);
 
         // Play warning sound effect
         if (objectiveSound != null && audioSource != null)
@@ -80,26 +137,21 @@ public class TheObjectiveGiverEnemy : EnemyBase
             audioSource.PlayOneShot(objectiveSound);
         }
 
-        // Duration to show the objective and track player actions (approx 2.5 seconds)
-        float duration = 2.5f;
         float elapsed = 0f;
         bool ruleBroken = false;
 
-        RectTransform textRect = objectiveText != null ? objectiveText.GetComponent<RectTransform>() : null;
-        Vector3 originalPos = textRect != null ? textRect.anchoredPosition : Vector3.zero;
-
-        // Monitor player inputs and shake UI
-        while (elapsed < duration)
+        // Monitor player inputs while pulsing skybox
+        while (elapsed < objectiveDuration)
         {
             // Check if player violates the rule
-            if (objectiveType == 0) // Rule: Do Not Jump
+            if (isJumpObjective)
             {
-                if (Input.GetKeyDown(KeyCode.Space))
+                if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Jump"))
                 {
                     ruleBroken = true;
                 }
             }
-            else if (objectiveType == 1) // Rule: Do Not Move
+            else // Rule: Do Not Move
             {
                 if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1f)
                 {
@@ -107,96 +159,122 @@ public class TheObjectiveGiverEnemy : EnemyBase
                 }
             }
 
-            // Shake the UI text vigorously in the center of the screen
-            if (textRect != null)
-            {
-                Vector2 shakeOffset = Random.insideUnitCircle * 18f; // Large shake intensity
-                textRect.anchoredPosition = originalPos + (Vector3)shakeOffset;
-            }
+            // Pulse skybox tint/exposure if using temp runtime material
+            PulseSkyboxEffect(isJumpObjective, elapsed);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Reset text position
-        if (textRect != null) textRect.anchoredPosition = originalPos;
-
-        // Apply penalty if the player broke the rule
+        // Apply penalty if rule was broken
         if (ruleBroken)
         {
+            float penaltyDamage = attackDamage > 0f ? attackDamage : 5f;
             if (playerController != null)
             {
-                playerController.TakeDamage(5f); // Reduce player HP by 5
+                playerController.TakeDamage(penaltyDamage);
             }
-            Debug.Log("[TheObjectiveGiver] Rule broken! Player took 5 damage penalty.");
+
+            if (failSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(failSound);
+            }
+
+            Debug.Log($"[TheObjectiveGiver] Rule broken! Applied {penaltyDamage} damage penalty.");
         }
         else
         {
             Debug.Log("[TheObjectiveGiver] Objective successfully followed!");
         }
 
-        // Gradually fade out and destroy the UI
-        yield return StartCoroutine(FadeOutAndDestroyUIRoutine());
+        // Smoothly transition back to normal skybox
+        yield return StartCoroutine(TransitionBackToNormalSkyboxRoutine(0.5f));
 
         isEventActive = false;
     }
 
-    // --- DYNAMIC UI CREATION (LARGE CENTER TEXT, NO BLACK BACKGROUND) ---
-    private void CreateObjectiveUI(string message)
+    // --- SKYBOX MANIPULATION LOGIC ---
+    private void ApplyObjectiveSkybox(bool isJumpObjective)
     {
-        if (uiCanvasObj != null) Destroy(uiCanvasObj);
+        // Backup the original scene skybox
+        if (originalSkybox == null)
+        {
+            originalSkybox = RenderSettings.skybox;
+        }
 
-        // Create Canvas in screen space overlay
-        uiCanvasObj = new GameObject("ObjectiveCanvas");
-        Canvas canvas = uiCanvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 999;
+        Material targetMat = isJumpObjective ? doNotJumpSkybox : doNotMoveSkybox;
 
-        uiCanvasObj.AddComponent<CanvasScaler>();
-        uiCanvasObj.AddComponent<GraphicRaycaster>();
+        if (targetMat != null)
+        {
+            RenderSettings.skybox = targetMat;
+        }
+        else if (originalSkybox != null)
+        {
+            // Fallback: Clone active skybox and adjust tint dynamically
+            if (runtimeTempSkybox != null) Destroy(runtimeTempSkybox);
+            runtimeTempSkybox = new Material(originalSkybox);
 
-        // Create Text element directly in the center (No background panel)
-        GameObject textObj = new GameObject("ObjectiveText");
-        textObj.transform.SetParent(uiCanvasObj.transform, false);
+            Color targetColor = isJumpObjective ? doNotJumpSkyColor : doNotMoveSkyColor;
+            SetMaterialColor(runtimeTempSkybox, targetColor);
 
-        objectiveText = textObj.AddComponent<Text>();
-        objectiveText.text = message;
-        objectiveText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        objectiveText.fontSize = 42; // Large text size
-        objectiveText.alignment = TextAnchor.MiddleCenter;
-        objectiveText.color = Color.yellow; // High-visibility color
+            RenderSettings.skybox = runtimeTempSkybox;
+        }
 
-        // Add an Outline component to make the text pop clearly without a background
-        Outline outline = textObj.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(3, -3);
-
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0.2f, 0.4f);
-        textRect.anchorMax = new Vector2(0.8f, 0.6f);
-        textRect.sizeDelta = Vector2.zero;
-        textRect.anchoredPosition = Vector2.zero;
+        DynamicGI.UpdateEnvironment();
     }
 
-    // --- FADE OUT EFFECT ROUTINE ---
-    private IEnumerator FadeOutAndDestroyUIRoutine()
+    private void PulseSkyboxEffect(bool isJumpObjective, float time)
     {
-        if (uiCanvasObj == null) yield break;
+        if (runtimeTempSkybox == null) return;
 
-        float fadeDuration = 0.8f;
+        Color baseColor = isJumpObjective ? doNotJumpSkyColor : doNotMoveSkyColor;
+        float pulse = (Mathf.Sin(time * skyboxPulseSpeed) + 1f) * 0.5f; // 0 to 1 wave
+        Color pulsedColor = Color.Lerp(baseColor * 0.6f, baseColor * 1.4f, pulse);
+
+        SetMaterialColor(runtimeTempSkybox, pulsedColor);
+    }
+
+    private void SetMaterialColor(Material mat, Color col)
+    {
+        if (mat.HasProperty("_Tint")) mat.SetColor("_Tint", col);
+        else if (mat.HasProperty("_Color")) mat.SetColor("_Color", col);
+        else if (mat.HasProperty("_SkyTint")) mat.SetColor("_SkyTint", col);
+    }
+
+    private IEnumerator TransitionBackToNormalSkyboxRoutine(float duration)
+    {
         float elapsed = 0f;
+        Color startColor = runtimeTempSkybox != null && runtimeTempSkybox.HasProperty("_Tint") ? runtimeTempSkybox.GetColor("_Tint") : Color.white;
 
-        // Use CanvasGroup to fade out smoothly
-        CanvasGroup canvasGroup = uiCanvasObj.AddComponent<CanvasGroup>();
-
-        while (elapsed < fadeDuration)
+        while (elapsed < duration)
         {
-            float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
-            canvasGroup.alpha = alpha;
             elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            if (runtimeTempSkybox != null)
+            {
+                Color fadedColor = Color.Lerp(startColor, Color.white, t);
+                SetMaterialColor(runtimeTempSkybox, fadedColor);
+            }
+
             yield return null;
         }
 
-        Destroy(uiCanvasObj);
+        RestoreSkybox();
+    }
+
+    private void RestoreSkybox()
+    {
+        if (originalSkybox != null)
+        {
+            RenderSettings.skybox = originalSkybox;
+            DynamicGI.UpdateEnvironment();
+        }
+
+        if (runtimeTempSkybox != null)
+        {
+            Destroy(runtimeTempSkybox);
+            runtimeTempSkybox = null;
+        }
     }
 }

@@ -86,6 +86,9 @@ public class EnemySelectionOption : LobbyOption
 
     [Tooltip("Base number of enemies spawned per selection every interval.")]
     public int enemyCount = 1;
+
+    [Tooltip("If true, only 1 instance will exist per level. Extra picks reduce action/spawn intervals instead of spawning duplicates.")]
+    public bool isSingleInstance = false;
 }
 
 [System.Serializable]
@@ -875,61 +878,69 @@ public class GameManager : MonoBehaviour
     }
 
     // --- CONTINUOUS ENEMY SPAWN ROUTINE ---
-
     private IEnumerator ContinuousSpawnEnemiesRoutine(float interval)
     {
         yield return new WaitForSeconds(1.5f);
 
         while (true)
         {
-            // Clean destroyed/null enemies from list before checking cap
             activeEnemies.RemoveAll(e => e == null);
 
-            // Respect hard active enemy cap to eliminate lag
             if (activeEnemies.Count < maxActiveEnemies)
             {
                 Vector3 currentSpawnOrigin = Vector3.zero;
                 GameObject playerObj = GameObject.FindWithTag("Player");
 
                 if (playerObj != null)
-                {
                     currentSpawnOrigin = playerObj.transform.position;
-                }
                 else if (MapGenerator.Instance != null)
-                {
                     currentSpawnOrigin = MapGenerator.Instance.StartChunkWorldPosition;
-                }
 
-                List<EnemySelectionOption> activeEnemyTypes = new List<EnemySelectionOption>();
-                foreach (var modifier in ActiveModifiers)
+                // Group active enemy options by prefab
+                var enemyGroups = ActiveModifiers
+                    .OfType<EnemySelectionOption>()
+                    .Where(e => e.levelSpawnPrefab != null)
+                    .GroupBy(e => !string.IsNullOrEmpty(e.optionID) ? e.optionID : e.levelSpawnPrefab.name);
+
+                foreach (var group in enemyGroups)
                 {
-                    if (modifier is EnemySelectionOption enemyOpt && enemyOpt.levelSpawnPrefab != null)
-                    {
-                        activeEnemyTypes.Add(enemyOpt);
-                    }
-                }
+                    if (activeEnemies.Count >= maxActiveEnemies) break;
 
-                if (activeEnemyTypes.Count > 0)
-                {
-                    foreach (var enemyOpt in activeEnemyTypes)
-                    {
-                        if (activeEnemies.Count >= maxActiveEnemies) break;
+                    EnemySelectionOption sampleOption = group.First();
+                    int stackCount = group.Count();
 
-                        for (int i = 0; i < enemyOpt.enemyCount; i++)
+                    if (sampleOption.isSingleInstance)
+                    {
+                        // Check if screen hazard/single-instance enemy is already active in scene
+                        GameObject existingEnemy = activeEnemies.Find(e =>
+                            e != null && e.name.StartsWith(sampleOption.levelSpawnPrefab.name));
+
+                        if (existingEnemy == null)
                         {
-                            if (activeEnemies.Count >= maxActiveEnemies) break;
-                            SpawnSingleEnemy(enemyOpt.levelSpawnPrefab, currentSpawnOrigin);
+                            // Spawn directly without 3D ground raycasting
+                            GameObject spawned = Instantiate(sampleOption.levelSpawnPrefab, Vector3.zero, Quaternion.identity);
+                            RegisterEnemy(spawned);
+
+                            if (spawned.TryGetComponent<EnemyBase>(out var enemyScript))
+                            {
+                                enemyScript.SetStackCount(stackCount);
+                            }
+                        }
+                        else if (existingEnemy.TryGetComponent<EnemyBase>(out var enemyScript))
+                        {
+                            // Update existing instance stack count if changed mid-level
+                            enemyScript.SetStackCount(stackCount);
                         }
                     }
-
-                    int extraEnemyCount = Mathf.RoundToInt(GetTotalEnemyBuffValue(EnemyStatType.ExtraEnemyCount));
-                    for (int i = 0; i < extraEnemyCount; i++)
+                    else
                     {
-                        if (activeEnemies.Count >= maxActiveEnemies) break;
-
-                        int randomIndex = Random.Range(0, activeEnemyTypes.Count);
-                        GameObject randomPrefab = activeEnemyTypes[randomIndex].levelSpawnPrefab;
-                        SpawnSingleEnemy(randomPrefab, currentSpawnOrigin);
+                        // Standard physical 3D enemies
+                        int totalToSpawn = sampleOption.enemyCount * stackCount;
+                        for (int i = 0; i < totalToSpawn; i++)
+                        {
+                            if (activeEnemies.Count >= maxActiveEnemies) break;
+                            SpawnSingleEnemy(sampleOption.levelSpawnPrefab, currentSpawnOrigin);
+                        }
                     }
                 }
             }
@@ -938,16 +949,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void StopSpawningEnemies()
-    {
-        if (activeSpawnCoroutine != null)
-        {
-            StopCoroutine(activeSpawnCoroutine);
-            activeSpawnCoroutine = null;
-        }
-    }
-
-    private void SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
+    // Update SpawnSingleEnemy return type to return the spawned enemy GameObject
+    private GameObject SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
     {
         Vector3 spawnPos;
 
@@ -957,12 +960,21 @@ public class GameManager : MonoBehaviour
             spawnPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
         }
 
-        // Retrieve from pool if available, fallback to Instantiate
         GameObject spawnedEnemy = (SimpleEnemyPool.Instance != null)
             ? SimpleEnemyPool.Instance.GetEnemy(prefab, spawnPos, Quaternion.identity)
             : Instantiate(prefab, spawnPos, Quaternion.identity);
 
         RegisterEnemy(spawnedEnemy);
+        return spawnedEnemy;
+    }
+
+    private void StopSpawningEnemies()
+    {
+        if (activeSpawnCoroutine != null)
+        {
+            StopCoroutine(activeSpawnCoroutine);
+            activeSpawnCoroutine = null;
+        }
     }
 
     private bool TryGetValidPlatformPosition(Vector3 origin, out Vector3 validPosition)

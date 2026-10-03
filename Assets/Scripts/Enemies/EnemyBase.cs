@@ -2,6 +2,13 @@ using UnityEngine;
 
 public abstract class EnemyBase : MonoBehaviour
 {
+    public int StackCount { get; protected set; } = 1;
+
+    public virtual void SetStackCount(int stackCount)
+    {
+        StackCount = Mathf.Max(1, stackCount);
+    }
+
     [Header("Health Settings")]
     public float maxHealth = 50f;
     public float CurrentHealth { get; protected set; }
@@ -32,6 +39,8 @@ public abstract class EnemyBase : MonoBehaviour
     [Header("Damage Pop-up Settings")]
     [Tooltip("Prefab containing FloatingDamageText component.")]
     public GameObject damageTextPrefab;
+
+    public virtual bool IsTargetable => true;
 
     protected float attackCooldownTimer;
     protected Vector3 spawnPosition;

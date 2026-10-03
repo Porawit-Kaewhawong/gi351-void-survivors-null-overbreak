@@ -63,7 +63,8 @@ public abstract class BaseWeapon : MonoBehaviour
 
         foreach (var enemy in enemies)
         {
-            if (enemy == null || enemy.CurrentHealth <= 0f) continue;
+            // Ignore null, dead, or non-targetable hazards
+            if (enemy == null || enemy.CurrentHealth <= 0f || !enemy.IsTargetable) continue;
 
             float distSqr = (enemy.transform.position - transform.position).sqrMagnitude;
             if (distSqr <= minDistanceSqr)

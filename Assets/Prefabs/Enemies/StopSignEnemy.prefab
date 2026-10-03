@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 6839315494490371546}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.34698, y: 0.83656, z: -0.62813}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -115,15 +115,29 @@ MonoBehaviour:
   destroyOnFall: 1
   fallDistance: 20
   damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
-  yellowSignSprite: {fileID: 6358040702757662528, guid: f565245fa986b654a88c7a5022e3874f, type: 3}
-  redSignSprite: {fileID: 7909341408540862525, guid: e2e84861b457f3a459ac1d10830cbe99, type: 3}
   greenSignSprite: {fileID: 6889109067770806722, guid: 0ea5be2247ff24b46b4394bb315dec41, type: 3}
-  yellowSound: {fileID: 0}
-  redSound: {fileID: 0}
-  greenSound: {fileID: 0}
-  initialDelay: 12
-  minSpawnInterval: 12
-  maxSpawnInterval: 24
+  orangeSignSprite: {fileID: 6358040702757662528, guid: f565245fa986b654a88c7a5022e3874f, type: 3}
+  redSignSprite: {fileID: 7909341408540862525, guid: e2e84861b457f3a459ac1d10830cbe99, type: 3}
+  greenSound: {fileID: 8300000, guid: 386495a0cb3ceaf46a4ff7b5ae666547, type: 3}
+  orangeSound: {fileID: 8300000, guid: 386495a0cb3ceaf46a4ff7b5ae666547, type: 3}
+  redSound: {fileID: 8300000, guid: 386495a0cb3ceaf46a4ff7b5ae666547, type: 3}
+  damageSound: {fileID: 8300000, guid: 5f2e95ba878d98642ad7cf646e50b6b3, type: 3}
+  fadeOutSound: {fileID: 8300000, guid: 2fa1476980f5dd3438c54efe331e23bd, type: 3}
+  ambientSound: {fileID: 0}
+  ambientVolume: 0.75
+  initialDelay: 15
+  minSpawnInterval: 30
+  maxSpawnInterval: 60
+  reactionWindow: 2.5
+  signSize: {x: 450, y: 450}
+  positionMode: 1
+  customPositionOffset: {x: -400, y: 0}
+  randomScreenPadding: {x: 150, y: 150}
+  fadeInDuration: 0.2
+  fadeOutDuration: 0.3
+  minSuccessDisplayTime: 0.5
+  shakeDuration: 0.1
+  shakeMagnitude: 10
 --- !u!114 &-8778951421000050208
 MonoBehaviour:
   m_ObjectHideFlags: 0

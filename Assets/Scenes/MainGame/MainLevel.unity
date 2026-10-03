@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
+  m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -407,6 +407,7 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 206ade414874ecf48854c62a052b6077, type: 3}
     levelSpawnPrefab: {fileID: 7480281311546530933, guid: a1c12823cb021f34d8bbc048d14d3c1b, type: 3}
     enemyCount: 2
+    isSingleInstance: 0
   - title: Abnormal Chair
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
@@ -414,6 +415,7 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 6c065dd3cd421c549ab261aaab24f566, type: 3}
     levelSpawnPrefab: {fileID: 2459689805982476572, guid: ec478b8881cbc7f429ee60814076e069, type: 3}
     enemyCount: 2
+    isSingleInstance: 0
   - title: Poorly-draw Character
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
@@ -421,6 +423,7 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: c8e5c64252e21d94c9138a2c589e3481, type: 3}
     levelSpawnPrefab: {fileID: 5420205998641944471, guid: 894a12047b7d50d419a44799713edf71, type: 3}
     enemyCount: 2
+    isSingleInstance: 0
   - title: Follower
     description: Follower will follow you forever.
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
@@ -428,27 +431,7 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: c029facec50adc54995f1cad20856fc3, type: 3}
     levelSpawnPrefab: {fileID: 687280552887281312, guid: d778875a4f3a2484ebdf7516c7d9eb56, type: 3}
     enemyCount: 1
-  - title: Stop Sign
-    description: You should stop when it appears.
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: enemy_stopsign
-    icon: {fileID: 21300000, guid: 582cd63494bf0574f9aa9814d8c5705a, type: 3}
-    levelSpawnPrefab: {fileID: 6839315494490371546, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
-    enemyCount: 1
-  - title: The Watcher
-    description: Collect its item to keep yourself safe
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: enemy_watcher
-    icon: {fileID: 21300000, guid: 87eb08bd6f325ae42a5be6cd1f306673, type: 3}
-    levelSpawnPrefab: {fileID: 490442129511756057, guid: 40014bab4c17a8642b96d632ed75770f, type: 3}
-    enemyCount: 1
-  - title: Objective Giver
-    description: Follow its instructions
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: enemy_objectivegiver
-    icon: {fileID: 21300000, guid: 55b554d1282a1cd41be19cde554064e2, type: 3}
-    levelSpawnPrefab: {fileID: 365869445532505809, guid: 7938140c0eb22534680c1baec3f73b42, type: 3}
-    enemyCount: 1
+    isSingleInstance: 0
   - title: Filter Placer
     description: Don't get too close or get filter'd
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
@@ -456,6 +439,31 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 7651aea9eb12d7343b379f3e012e6231, type: 3}
     levelSpawnPrefab: {fileID: 9112133899006945850, guid: dc8785ea9da9c584b999dc56d7b198c7, type: 3}
     enemyCount: 1
+    isSingleInstance: 0
+  - title: Stop Sign
+    description: You should stop when it appears.
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_stopsign
+    icon: {fileID: 21300000, guid: 582cd63494bf0574f9aa9814d8c5705a, type: 3}
+    levelSpawnPrefab: {fileID: 6839315494490371546, guid: 31814820898cfd341ac4f569db12b0ec, type: 3}
+    enemyCount: 1
+    isSingleInstance: 1
+  - title: The Watcher
+    description: Collect its item to keep yourself safe
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_watcher
+    icon: {fileID: 21300000, guid: 87eb08bd6f325ae42a5be6cd1f306673, type: 3}
+    levelSpawnPrefab: {fileID: 490442129511756057, guid: 40014bab4c17a8642b96d632ed75770f, type: 3}
+    enemyCount: 1
+    isSingleInstance: 1
+  - title: Objective Giver
+    description: Follow its instructions
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_objectivegiver
+    icon: {fileID: 21300000, guid: 55b554d1282a1cd41be19cde554064e2, type: 3}
+    levelSpawnPrefab: {fileID: 365869445532505809, guid: 7938140c0eb22534680c1baec3f73b42, type: 3}
+    enemyCount: 1
+    isSingleInstance: 1
   playerBuffOptions:
   - title: Broken Running Shoes
     description: 'Base speed increases by 10%
