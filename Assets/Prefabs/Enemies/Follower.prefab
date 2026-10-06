@@ -98,6 +98,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFollower
   maxHealth: 30
   moveSpeed: 3.5
+  enableCatchUpSpeed: 1
+  catchUpStartDistance: 8
+  catchUpMaxDistance: 22
+  maxCatchUpMultiplier: 3.5
+  enableDash: 1
+  dashTriggerDistance: 6
+  dashSpeedMultiplier: 2.5
+  dashDuration: 0.35
+  dashCooldown: 4
   attackDamage: 1
   attackRate: 1
   attackDistance: 1.25

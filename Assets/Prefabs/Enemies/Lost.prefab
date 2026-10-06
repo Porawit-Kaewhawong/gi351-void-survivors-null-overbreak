@@ -1,0 +1,182 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &490442129511756057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7779031616973018680}
+  - component: {fileID: 1673692801995647675}
+  - component: {fileID: 1174957432896784872}
+  - component: {fileID: 4406733876016589767}
+  m_Layer: 0
+  m_Name: Lost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7779031616973018680
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490442129511756057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1673692801995647675
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490442129511756057}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 0
+  m_SpriteSortPoint: 0
+--- !u!114 &1174957432896784872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490442129511756057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d362199747990cd43994730684b8676e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TheWatcherEnemy
+  maxHealth: 25
+  moveSpeed: 3.5
+  enableCatchUpSpeed: 1
+  catchUpStartDistance: 8
+  catchUpMaxDistance: 22
+  maxCatchUpMultiplier: 1.8
+  enableDash: 0
+  dashTriggerDistance: 6
+  dashSpeedMultiplier: 2.5
+  dashDuration: 0.35
+  dashCooldown: 4
+  attackDamage: 1
+  attackRate: 1
+  attackDistance: 1.2
+  deathSound: {fileID: 0}
+  deathSoundVolume: 1
+  destroyOnFall: 1
+  fallDistance: 20
+  damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
+  watcherSprite: {fileID: 21300000, guid: 46ace4fff62b76e4583f791162228687, type: 3}
+  watcherSpriteSize: {x: 500, y: 350}
+  flashDuration: 0.25
+  watcherMessage: Go find my stuff in the fog.
+  warningTimeThreshold: 10
+  warningMessage: 10 seconds left.
+  successMessage: Thank you.
+  successDisplayDuration: 2
+  timeoutMessage: You were too late.
+  timeoutDisplayDuration: 2
+  textFontSize: 45
+  customFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  textPositionMode: 3
+  textCustomOffset: {x: 0, y: -175}
+  typewriterSpeed: 0.1
+  letterShakeMagnitude: 5
+  letterShakeSpeed: 25
+  fogItemPrefab: {fileID: 4594314241690102415, guid: 082160d7ef1700d498129ad4fc6277eb, type: 3}
+  collectionTimeLimit: 30
+  spawnNearPlayer: 1
+  minPlayerSpawnDistance: 50
+  maxPlayerSpawnDistance: 65
+  mapEdgeSafetyBuffer: 2
+  useMapGeneratorRadius: 1
+  mapCenterPosition: {x: 0, y: 0, z: 0}
+  mapSpawnRadius: 100
+  groundYPosition: 0
+  groundYOffset: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  watcherSound: {fileID: 8300000, guid: d18ffd1c9f82af9479d85f31f0fa0f0f, type: 3}
+  typewriterSound: {fileID: 8300000, guid: 333fa902db8e8bf4f915b2dbfc56795b, type: 3}
+  successSound: {fileID: 8300000, guid: 9296650bd9498d74e9ce641ca3f7e370, type: 3}
+  failSound: {fileID: 8300000, guid: e95d03319ace009448f7a1f8e602a410, type: 3}
+  initialDelay: 20
+  minSpawnInterval: 40
+  maxSpawnInterval: 80
+  applyVisionPenalty: 1
+  visionPenaltyDuration: 10
+  penaltyFarClipPlane: 12.5
+  visionOverlaySprite: {fileID: 0}
+--- !u!114 &4406733876016589767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490442129511756057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b75eb5f556ddde4b94d4c4ffb21d3a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteFlash
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.12

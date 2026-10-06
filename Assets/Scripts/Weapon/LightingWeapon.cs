@@ -10,6 +10,40 @@ public class LightningWeapon : BaseWeapon
     public int lightningSegments = 6;
     public float jitterAmount = 0.35f;
 
+    [Header("Lightning Upgrade Scaling")]
+    [Tooltip("Percentage targeting range increase per level.")]
+    public float rangeScalePerLevel = 0.01f;
+
+    [Tooltip("Percentage splash area increase around target per level (e.g. 0.20 = +20% splash radius).")]
+    public float splashScalePerLevel = 0.01f;
+
+    [Tooltip("Additional jagged zig-zag segments added to lightning per level for visuals.")]
+    public int extraSegmentsPerLevel = 1;
+
+    private float baseSplashRadius;
+    private int baseLightningSegments;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        baseSplashRadius = splashRadius;
+        baseLightningSegments = lightningSegments;
+    }
+
+    public override void SetWeaponLevel(int level)
+    {
+        base.SetWeaponLevel(level); // Handles Damage and AttackInterval scaling[cite: 8]
+
+        // Scale Attack Range
+        attackRange = baseAttackRange * (1f + ((Level - 1) * rangeScalePerLevel));
+
+        // Scale Splash Radius & Visual Lightning Segments
+        splashRadius = baseSplashRadius * (1f + ((Level - 1) * splashScalePerLevel));
+
+        // Increases segments once every 3 level-ups (e.g., Level 1-3 = +0, Level 4-6 = +1, Level 7-9 = +2)
+        lightningSegments = baseLightningSegments + ((Level / 3) * extraSegmentsPerLevel);
+    }
+
     protected override bool TryAttack()
     {
         EnemyBase primaryTarget = FindNearestEnemy();

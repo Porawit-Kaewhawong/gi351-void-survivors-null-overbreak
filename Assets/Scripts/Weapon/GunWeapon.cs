@@ -9,6 +9,18 @@ public class GunWeapon : BaseWeapon
     [Tooltip("Color of the bullet tracer beam.")]
     public Color tracerColor = Color.yellow;
 
+    [Header("Gun Upgrade Scaling")]
+    [Tooltip("Percentage attack range increase per level (e.g. 0.15 = +15% range per level).")]
+    public float rangeScalePerLevel = 0.01f;
+
+    public override void SetWeaponLevel(int level)
+    {
+        base.SetWeaponLevel(level); // Handles Damage and AttackInterval scaling
+
+        // Scale Attack Range
+        attackRange = baseAttackRange * (1f + ((Level - 1) * rangeScalePerLevel));
+    }
+
     protected override bool TryAttack()
     {
         EnemyBase target = FindNearestEnemy();

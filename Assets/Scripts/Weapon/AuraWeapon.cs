@@ -6,6 +6,18 @@ public class AuraWeapon : BaseWeapon
     [Header("Aura Visual Settings")]
     public Color auraColor = new Color(0f, 0.8f, 1f, 0.4f);
 
+    [Header("Aura Upgrade Scaling")]
+    [Tooltip("Percentage pulse area expansion per level (e.g. 0.20 = +20% radius per level).")]
+    public float rangeScalePerLevel = 0.01f;
+
+    public override void SetWeaponLevel(int level)
+    {
+        base.SetWeaponLevel(level); // Handles Damage and AttackInterval scaling
+
+        // Scale Attack Range (Aura Radius)
+        attackRange = baseAttackRange * (1f + ((Level - 1) * rangeScalePerLevel));
+    }
+
     protected override bool TryAttack()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
