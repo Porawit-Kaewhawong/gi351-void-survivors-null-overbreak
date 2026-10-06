@@ -1,37 +1,77 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class TheObjectiveGiverEnemy : EnemyBase
 {
     public override bool IsTargetable => false;
 
-    [Header("Skybox Objective Materials (Optional)")]
-    [Tooltip("Skybox material displayed when 'DO NOT JUMP' objective triggers. If unassigned, tints existing skybox.")]
-    [SerializeField] private Material doNotJumpSkybox;
+    public enum ObjectiveType
+    {
+        MaxJumpsAllowed,     // Allow up to N jumps (e.g., max 3)
+        HoldCameraStill,     // Must keep camera static for N continuous seconds (e.g., 1.0s)
+        MustJump             // Airborne state required before window expires
+    }
 
-    [Tooltip("Skybox material displayed when 'DO NOT MOVE' objective triggers. If unassigned, tints existing skybox.")]
-    [SerializeField] private Material doNotMoveSkybox;
+    [Header("Retro OS Window Visuals")]
+    [Tooltip("Dimensions (Width, Height) of the error pop-up window.")]
+    [SerializeField] private Vector2 windowSize = new Vector2(560f, 260f);
 
-    [Header("Skybox Fallback Tint Colors")]
-    [Tooltip("Tint color applied to current skybox if 'doNotJumpSkybox' is unassigned.")]
-    [SerializeField] private Color doNotJumpSkyColor = new Color(1f, 0.85f, 0.2f); // Warning Yellow
+    [Tooltip("Padding in UI pixels from the screen edges so the window never touches the border.")]
+    [SerializeField] private float screenEdgePadding = 40f;
 
-    [Tooltip("Tint color applied to current skybox if 'doNotMoveSkybox' is unassigned.")]
-    [SerializeField] private Color doNotMoveSkyColor = new Color(1f, 0.2f, 0.2f); // Critical Red
+    [Tooltip("Window background color (classic Win95 Gray is #C0C0C0).")]
+    [SerializeField] private Color windowBackgroundColor = new Color(0.75f, 0.75f, 0.75f, 1f);
 
-    [Tooltip("Speed at which the skybox color pulses during the active objective.")]
-    [SerializeField] private float skyboxPulseSpeed = 8f;
+    [Tooltip("Title bar background color (classic Win95 Dark Blue is #000080).")]
+    [SerializeField] private Color titleBarColor = new Color(0f, 0f, 0.5f, 1f);
 
-    [Header("Objective Duration Settings")]
-    [Tooltip("Duration in seconds that the objective lasts and monitors player actions.")]
+    [Tooltip("Font to use for retro window text. Drag any TTF/OTF font here if auto-detect fails.")]
+    [SerializeField] private Font customFont;
+
+    [Header("Objective 1: JUMP BUDGET (MAX 3 JUMPS)")]
+    [Tooltip("Maximum allowed jumps before breaking the objective rule.")]
+    [SerializeField] private int maxAllowedJumps = 3;
+    [SerializeField] private string maxJumpsHeader = "system_error.exe - [JUMP BUDGET EXCEEDED]";
+    [SerializeField]
+    private string[] maxJumpsMessages = new string[]
+    {
+        "DO NOT JUMP MORE THAN 3 TIMES.",
+        "JUMP ALLOTMENT: 3 MAXIMUM.",
+        "EXCEEDING 3 JUMPS WILL CAUSE DESYNC."
+    };
+
+    [Header("Objective 2: CAMERA CALIBRATION (1 SECOND STILL)")]
+    [Tooltip("Continuous seconds the camera must remain still during the event window.")]
+    [SerializeField] private float requiredStaticDuration = 1.0f;
+    [SerializeField] private string stillnessHeader = "system_warning.sys - [VISION CALIBRATION]";
+    [SerializeField]
+    private string[] stillnessMessages = new string[]
+    {
+        "HOLD CAMERA STILL FOR 1 SECOND.",
+        "FREEZE VISION FOR 1.0s TO RECALIBRATE.",
+        "PAUSE LOOK INPUT FOR 1 CONTINUOUS SECOND."
+    };
+
+    [Header("Objective 3: AIRBORNE (MUST JUMP)")]
+    [SerializeField] private string airborneHeader = "system_error.exe - [GRAVITY DESYNC]";
+    [SerializeField]
+    private string[] airborneMessages = new string[]
+    {
+        "THE FLOOR IS NO LONGER SAFE. ELEVATE.",
+        "AIRBORNE STATE REQUIRED IMMEDIATELY.",
+        "LEAVE THE GROUND AT LEAST ONCE BEFORE TIME EXPIRES."
+    };
+
+    [Header("Duration & Sensitivity Settings")]
+    [Tooltip("Duration in seconds that the objective window remains active and monitors player input.")]
     [SerializeField] private float objectiveDuration = 2.5f;
 
-    [Header("Audio Settings")]
-    [Tooltip("Audio clip played when an objective appears.")]
-    [SerializeField] private AudioClip objectiveSound;
+    [Tooltip("Sensitivity threshold for detecting camera/mouse movement during 'Hold Camera Still'.")]
+    [SerializeField] private float mouseSensitivityThreshold = 0.15f;
 
-    [Tooltip("Audio clip played if the player breaks the rule and takes damage.")]
-    [SerializeField] private AudioClip failSound;
+    [Tooltip("Intensity of retro digital jitter/shake applied to the pop-up window.")]
+    [SerializeField] private float windowShakeMagnitude = 6f;
 
     [Header("Spawn Timing Settings")]
     [Tooltip("Initial delay before the objective giver can first appear after spawn.")]
@@ -43,23 +83,27 @@ public class TheObjectiveGiverEnemy : EnemyBase
     [Tooltip("Maximum time interval between random objective appearances.")]
     [SerializeField] private float maxSpawnInterval = 35f;
 
+    [Header("Audio Settings")]
+    [Tooltip("16-bit chime or error sound played when the pop-up appears.")]
+    [SerializeField] private AudioClip popUpSound;
+
+    [Tooltip("Error sound played if the player violates the objective rule.")]
+    [SerializeField] private AudioClip failSound;
+
+    [Tooltip("Click/Resolve sound played if the player successfully follows the rule.")]
+    [SerializeField] private AudioClip successSound;
+
+    private GameObject uiCanvasObj;
+    private RectTransform windowRect;
+    private CanvasGroup canvasGroup;
     private AudioSource audioSource;
     private bool isEventActive = false;
-
-    private Material originalSkybox;
-    private Material runtimeTempSkybox;
+    private Coroutine shakeCoroutine;
 
     protected override void Awake()
     {
         base.Awake();
-
-        // Setup AudioSource component for sound effects
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
-
+        audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
         DisableWorldInteraction();
     }
 
@@ -70,44 +114,43 @@ public class TheObjectiveGiverEnemy : EnemyBase
 
     private void OnDisable()
     {
-        RestoreSkybox();
+        DestroyUI();
     }
 
-    protected override void Update()
-    {
-        // Overridden empty to prevent base enemy movement logic
-    }
-
-    public override void TakeDamage(float amount)
-    {
-        // Non-targetable hazard manager ignores incoming damage
-    }
+    protected override void Update() { }
+    public override void TakeDamage(float amount) { }
 
     private void DisableWorldInteraction()
     {
-        Collider col3D = GetComponent<Collider>();
-        if (col3D != null) col3D.enabled = false;
-
-        Collider2D col2D = GetComponent<Collider2D>();
-        if (col2D != null) col2D.enabled = false;
-
+        Collider col3D = GetComponent<Collider>(); if (col3D != null) col3D.enabled = false;
+        Collider2D col2D = GetComponent<Collider2D>(); if (col2D != null) col2D.enabled = false;
         gameObject.layer = 2; // Ignore Raycast
+    }
+
+    // --- FONT FALLBACK HELPER ---
+    private Font GetValidFont()
+    {
+        if (customFont != null) return customFont;
+
+        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        if (font != null) return font;
+
+        font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        if (font != null) return font;
+
+        return Font.CreateDynamicFontFromOSFont("Arial", 16);
     }
 
     // --- RANDOM REPEATING EVENT LOOP ---
     private IEnumerator RandomObjectiveRoutine()
     {
         int safeStackCount = Mathf.Max(1, StackCount);
-        float effectiveInitialDelay = initialDelay / safeStackCount;
-        yield return new WaitForSeconds(effectiveInitialDelay);
+        yield return new WaitForSeconds(initialDelay / safeStackCount);
 
         while (true)
         {
             safeStackCount = Mathf.Max(1, StackCount);
-            float minTime = minSpawnInterval / safeStackCount;
-            float maxTime = maxSpawnInterval / safeStackCount;
-
-            float waitTime = Random.Range(minTime, maxTime);
+            float waitTime = Random.Range(minSpawnInterval / safeStackCount, maxSpawnInterval / safeStackCount);
             yield return new WaitForSeconds(waitTime);
 
             if (!isEventActive)
@@ -122,159 +165,353 @@ public class TheObjectiveGiverEnemy : EnemyBase
     {
         isEventActive = true;
 
-        // Pick objective type: 0 = Do Not Jump, 1 = Do Not Move
-        int objectiveType = Random.Range(0, 2);
-        bool isJumpObjective = (objectiveType == 0);
+        ObjectiveType objective = (ObjectiveType)Random.Range(0, 3);
 
-        Debug.Log($"[TheObjectiveGiver] Objective event started! Skybox active. Mode: {(isJumpObjective ? "DO NOT JUMP" : "DO NOT MOVE")}");
+        string headerText = "";
+        string[] msgPool = null;
 
-        // Save active skybox and apply objective skybox/tint
-        ApplyObjectiveSkybox(isJumpObjective);
-
-        // Play warning sound effect
-        if (objectiveSound != null && audioSource != null)
+        switch (objective)
         {
-            audioSource.PlayOneShot(objectiveSound);
+            case ObjectiveType.MaxJumpsAllowed:
+                headerText = maxJumpsHeader;
+                msgPool = maxJumpsMessages;
+                break;
+            case ObjectiveType.HoldCameraStill:
+                headerText = stillnessHeader;
+                msgPool = stillnessMessages;
+                break;
+            case ObjectiveType.MustJump:
+                headerText = airborneHeader;
+                msgPool = airborneMessages;
+                break;
         }
+
+        string bodyText = (msgPool != null && msgPool.Length > 0) ? msgPool[Random.Range(0, msgPool.Length)] : "SYSTEM ERROR DETECTED.";
+
+        CreateRetroWindowUI(headerText, bodyText);
+
+        if (popUpSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(popUpSound);
+        }
+
+        StartCoroutine(FadeCanvasGroupRoutine(canvasGroup, 0f, 1f, 0.12f));
+        TriggerShake(objectiveDuration, windowShakeMagnitude);
 
         float elapsed = 0f;
         bool ruleBroken = false;
 
-        // Monitor player inputs while pulsing skybox
+        // Tracking variables
+        int currentJumpsPerformed = 0;
+        float currentStaticTime = 0f;
+        bool achievedStaticHold = false;
+        bool satisfiedJumpRequirement = false;
+
         while (elapsed < objectiveDuration)
         {
-            // Check if player violates the rule
-            if (isJumpObjective)
+            switch (objective)
             {
-                if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Jump"))
-                {
-                    ruleBroken = true;
-                }
-            }
-            else // Rule: Do Not Move
-            {
-                if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.1f)
-                {
-                    ruleBroken = true;
-                }
-            }
+                case ObjectiveType.MaxJumpsAllowed:
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Jump"))
+                    {
+                        currentJumpsPerformed++;
+                        if (currentJumpsPerformed > maxAllowedJumps)
+                        {
+                            ruleBroken = true;
+                        }
+                    }
+                    break;
 
-            // Pulse skybox tint/exposure if using temp runtime material
-            PulseSkyboxEffect(isJumpObjective, elapsed);
+                case ObjectiveType.HoldCameraStill:
+                    float mouseX = Mathf.Abs(Input.GetAxisRaw("Mouse X"));
+                    float mouseY = Mathf.Abs(Input.GetAxisRaw("Mouse Y"));
+
+                    if (mouseX <= mouseSensitivityThreshold && mouseY <= mouseSensitivityThreshold)
+                    {
+                        currentStaticTime += Time.deltaTime;
+                        if (currentStaticTime >= requiredStaticDuration)
+                        {
+                            achievedStaticHold = true;
+                        }
+                    }
+                    else
+                    {
+                        currentStaticTime = 0f;
+                    }
+                    break;
+
+                case ObjectiveType.MustJump:
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Jump"))
+                    {
+                        satisfiedJumpRequirement = true;
+                    }
+                    break;
+            }
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Apply penalty if rule was broken
+        if (objective == ObjectiveType.HoldCameraStill && !achievedStaticHold)
+        {
+            ruleBroken = true;
+        }
+        else if (objective == ObjectiveType.MustJump && !satisfiedJumpRequirement)
+        {
+            ruleBroken = true;
+        }
+
         if (ruleBroken)
         {
             float penaltyDamage = attackDamage > 0f ? attackDamage : 5f;
-            if (playerController != null)
-            {
-                playerController.TakeDamage(penaltyDamage);
-            }
-
-            if (failSound != null && audioSource != null)
-            {
-                audioSource.PlayOneShot(failSound);
-            }
-
-            Debug.Log($"[TheObjectiveGiver] Rule broken! Applied {penaltyDamage} damage penalty.");
+            if (playerController != null) playerController.TakeDamage(penaltyDamage);
+            if (failSound != null && audioSource != null) audioSource.PlayOneShot(failSound);
+            Debug.Log($"[TheObjectiveGiver] Rule broken! Objective: {objective}. Player took {penaltyDamage} damage.");
         }
         else
         {
-            Debug.Log("[TheObjectiveGiver] Objective successfully followed!");
+            if (successSound != null && audioSource != null) audioSource.PlayOneShot(successSound);
+            Debug.Log($"[TheObjectiveGiver] Objective {objective} successfully followed!");
         }
 
-        // Smoothly transition back to normal skybox
-        yield return StartCoroutine(TransitionBackToNormalSkyboxRoutine(0.5f));
+        yield return StartCoroutine(FadeCanvasGroupRoutine(canvasGroup, 1f, 0f, 0.2f));
+        DestroyUI();
 
         isEventActive = false;
     }
 
-    // --- SKYBOX MANIPULATION LOGIC ---
-    private void ApplyObjectiveSkybox(bool isJumpObjective)
+    // --- DYNAMIC RETRO OS UI CREATION ---
+    private void CreateRetroWindowUI(string header, string message)
     {
-        // Backup the original scene skybox
-        if (originalSkybox == null)
-        {
-            originalSkybox = RenderSettings.skybox;
-        }
+        DestroyUI();
 
-        Material targetMat = isJumpObjective ? doNotJumpSkybox : doNotMoveSkybox;
+        uiCanvasObj = new GameObject("RetroOSCanvas");
+        Canvas canvas = uiCanvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 998;
 
-        if (targetMat != null)
-        {
-            RenderSettings.skybox = targetMat;
-        }
-        else if (originalSkybox != null)
-        {
-            // Fallback: Clone active skybox and adjust tint dynamically
-            if (runtimeTempSkybox != null) Destroy(runtimeTempSkybox);
-            runtimeTempSkybox = new Material(originalSkybox);
+        CanvasScaler scaler = uiCanvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
 
-            Color targetColor = isJumpObjective ? doNotJumpSkyColor : doNotMoveSkyColor;
-            SetMaterialColor(runtimeTempSkybox, targetColor);
+        uiCanvasObj.AddComponent<GraphicRaycaster>();
+        canvasGroup = uiCanvasObj.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 0f;
 
-            RenderSettings.skybox = runtimeTempSkybox;
-        }
+        Font selectedFont = GetValidFont();
 
-        DynamicGI.UpdateEnvironment();
+        // Main Window Panel
+        GameObject windowObj = new GameObject("WindowPanel", typeof(RectTransform));
+        windowObj.transform.SetParent(uiCanvasObj.transform, false);
+
+        Image windowBg = windowObj.AddComponent<Image>();
+        windowBg.color = windowBackgroundColor;
+
+        Outline border = windowObj.AddComponent<Outline>();
+        border.effectColor = new Color(0.1f, 0.1f, 0.1f, 1f);
+        border.effectDistance = new Vector2(3, -3);
+
+        windowRect = windowObj.GetComponent<RectTransform>();
+        windowRect.sizeDelta = windowSize;
+
+        // --- SAFE RANDOM POSITION CALCULATION ---
+        // Reference Canvas size is 1920 x 1080 centered at (0,0)
+        // Ensure total margin factors in both UI edge padding and window shake magnitude
+        float totalMargin = screenEdgePadding + windowShakeMagnitude;
+
+        float maxAnchoredX = Mathf.Max(0f, (1920f * 0.5f) - (windowSize.x * 0.5f) - totalMargin);
+        float maxAnchoredY = Mathf.Max(0f, (1080f * 0.5f) - (windowSize.y * 0.5f) - totalMargin);
+
+        float randomX = Random.Range(-maxAnchoredX, maxAnchoredX);
+        float randomY = Random.Range(-maxAnchoredY, maxAnchoredY);
+
+        windowRect.anchoredPosition = new Vector2(randomX, randomY);
+
+        // Title Bar Header
+        GameObject titleBarObj = new GameObject("TitleBar", typeof(RectTransform));
+        titleBarObj.transform.SetParent(windowObj.transform, false);
+
+        Image titleBg = titleBarObj.AddComponent<Image>();
+        titleBg.color = titleBarColor;
+
+        RectTransform titleRect = titleBarObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0f, 1f);
+        titleRect.anchorMax = new Vector2(1f, 1f);
+        titleRect.pivot = new Vector2(0.5f, 1f);
+        titleRect.sizeDelta = new Vector2(0f, 32f);
+
+        // Title Text
+        GameObject titleTextObj = new GameObject("TitleText", typeof(RectTransform));
+        titleTextObj.transform.SetParent(titleBarObj.transform, false);
+
+        Text titleTxt = titleTextObj.AddComponent<Text>();
+        titleTxt.text = " " + header;
+        titleTxt.font = selectedFont;
+        titleTxt.fontSize = 15;
+        titleTxt.fontStyle = FontStyle.Bold;
+        titleTxt.alignment = TextAnchor.MiddleLeft;
+        titleTxt.color = Color.white;
+        titleTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+        titleTxt.verticalOverflow = VerticalWrapMode.Overflow;
+
+        RectTransform titleTxtRect = titleTextObj.GetComponent<RectTransform>();
+        titleTxtRect.anchorMin = Vector2.zero;
+        titleTxtRect.anchorMax = Vector2.one;
+        titleTxtRect.offsetMin = new Vector2(8f, 0f);
+        titleTxtRect.offsetMax = new Vector2(-35f, 0f);
+
+        // Close Button [X]
+        GameObject closeBtnObj = new GameObject("CloseButton", typeof(RectTransform));
+        closeBtnObj.transform.SetParent(titleBarObj.transform, false);
+
+        Image closeBg = closeBtnObj.AddComponent<Image>();
+        closeBg.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+
+        RectTransform closeRect = closeBtnObj.GetComponent<RectTransform>();
+        closeRect.anchorMin = new Vector2(1f, 0.5f);
+        closeRect.anchorMax = new Vector2(1f, 0.5f);
+        closeRect.pivot = new Vector2(1f, 0.5f);
+        closeRect.sizeDelta = new Vector2(22f, 22f);
+        closeRect.anchoredPosition = new Vector2(-5f, 0f);
+
+        GameObject closeTxtObj = new GameObject("XText", typeof(RectTransform));
+        closeTxtObj.transform.SetParent(closeBtnObj.transform, false);
+        Text closeTxt = closeTxtObj.AddComponent<Text>();
+        closeTxt.text = "X";
+        closeTxt.font = selectedFont;
+        closeTxt.fontSize = 14;
+        closeTxt.fontStyle = FontStyle.Bold;
+        closeTxt.alignment = TextAnchor.MiddleCenter;
+        closeTxt.color = Color.black;
+        closeTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+        closeTxt.verticalOverflow = VerticalWrapMode.Overflow;
+        closeTxtObj.GetComponent<RectTransform>().sizeDelta = new Vector2(22f, 22f);
+
+        // Error Icon [!]
+        GameObject iconObj = new GameObject("ErrorIcon", typeof(RectTransform));
+        iconObj.transform.SetParent(windowObj.transform, false);
+
+        Image iconBg = iconObj.AddComponent<Image>();
+        iconBg.color = new Color(0.85f, 0.1f, 0.1f, 1f);
+
+        RectTransform iconRect = iconObj.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(48f, 48f);
+        iconRect.anchoredPosition = new Vector2(24f, 10f);
+
+        GameObject iconTxtObj = new GameObject("Exclamation", typeof(RectTransform));
+        iconTxtObj.transform.SetParent(iconObj.transform, false);
+        Text iconTxt = iconTxtObj.AddComponent<Text>();
+        iconTxt.text = "!";
+        iconTxt.font = selectedFont;
+        iconTxt.fontSize = 32;
+        iconTxt.fontStyle = FontStyle.Bold;
+        iconTxt.alignment = TextAnchor.MiddleCenter;
+        iconTxt.color = Color.white;
+        iconTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+        iconTxt.verticalOverflow = VerticalWrapMode.Overflow;
+        iconTxtObj.GetComponent<RectTransform>().sizeDelta = new Vector2(48f, 48f);
+
+        // Body Warning Text
+        GameObject bodyTextObj = new GameObject("BodyText", typeof(RectTransform));
+        bodyTextObj.transform.SetParent(windowObj.transform, false);
+
+        Text bodyTxt = bodyTextObj.AddComponent<Text>();
+        bodyTxt.text = message;
+        bodyTxt.font = selectedFont;
+        bodyTxt.fontSize = 18;
+        bodyTxt.fontStyle = FontStyle.Bold;
+        bodyTxt.alignment = TextAnchor.MiddleLeft;
+        bodyTxt.color = Color.black;
+        bodyTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+        bodyTxt.verticalOverflow = VerticalWrapMode.Overflow;
+
+        RectTransform bodyRect = bodyTextObj.GetComponent<RectTransform>();
+        bodyRect.anchorMin = new Vector2(0f, 0.5f);
+        bodyRect.anchorMax = new Vector2(1f, 0.5f);
+        bodyRect.pivot = new Vector2(0f, 0.5f);
+        bodyRect.sizeDelta = new Vector2(-110f, 90f);
+        bodyRect.anchoredPosition = new Vector2(88f, 10f);
+
+        // OK Button
+        GameObject okBtnObj = new GameObject("OKButton", typeof(RectTransform));
+        okBtnObj.transform.SetParent(windowObj.transform, false);
+
+        Image okBg = okBtnObj.AddComponent<Image>();
+        okBg.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+
+        Outline okOutline = okBtnObj.AddComponent<Outline>();
+        okOutline.effectColor = Color.black;
+        okOutline.effectDistance = new Vector2(1, -1);
+
+        RectTransform okRect = okBtnObj.GetComponent<RectTransform>();
+        okRect.anchorMin = new Vector2(0.5f, 0f);
+        okRect.anchorMax = new Vector2(0.5f, 0f);
+        okRect.pivot = new Vector2(0.5f, 0f);
+        okRect.sizeDelta = new Vector2(90f, 30f);
+        okRect.anchoredPosition = new Vector2(0f, 18f);
+
+        GameObject okTxtObj = new GameObject("OKText", typeof(RectTransform));
+        okTxtObj.transform.SetParent(okBtnObj.transform, false);
+        Text okTxt = okTxtObj.AddComponent<Text>();
+        okTxt.text = "OK";
+        okTxt.font = selectedFont;
+        okTxt.fontSize = 14;
+        okTxt.alignment = TextAnchor.MiddleCenter;
+        okTxt.color = Color.black;
+        okTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+        okTxt.verticalOverflow = VerticalWrapMode.Overflow;
+        okTxtObj.GetComponent<RectTransform>().sizeDelta = new Vector2(90f, 30f);
     }
 
-    private void PulseSkyboxEffect(bool isJumpObjective, float time)
+    // --- ANIMATION & SHAKE ROUTINES ---
+    private void TriggerShake(float duration, float magnitude)
     {
-        if (runtimeTempSkybox == null) return;
-
-        Color baseColor = isJumpObjective ? doNotJumpSkyColor : doNotMoveSkyColor;
-        float pulse = (Mathf.Sin(time * skyboxPulseSpeed) + 1f) * 0.5f; // 0 to 1 wave
-        Color pulsedColor = Color.Lerp(baseColor * 0.6f, baseColor * 1.4f, pulse);
-
-        SetMaterialColor(runtimeTempSkybox, pulsedColor);
+        if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
+        if (windowRect != null) shakeCoroutine = StartCoroutine(ShakeUIRoutine(duration, magnitude));
     }
 
-    private void SetMaterialColor(Material mat, Color col)
+    private IEnumerator ShakeUIRoutine(float duration, float magnitude)
     {
-        if (mat.HasProperty("_Tint")) mat.SetColor("_Tint", col);
-        else if (mat.HasProperty("_Color")) mat.SetColor("_Color", col);
-        else if (mat.HasProperty("_SkyTint")) mat.SetColor("_SkyTint", col);
-    }
-
-    private IEnumerator TransitionBackToNormalSkyboxRoutine(float duration)
-    {
+        if (windowRect == null) yield break;
+        Vector2 originalPos = windowRect.anchoredPosition;
         float elapsed = 0f;
-        Color startColor = runtimeTempSkybox != null && runtimeTempSkybox.HasProperty("_Tint") ? runtimeTempSkybox.GetColor("_Tint") : Color.white;
 
         while (elapsed < duration)
         {
+            if (windowRect == null) yield break;
+            Vector2 offset = Random.insideUnitCircle * magnitude;
+            windowRect.anchoredPosition = originalPos + offset;
             elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            if (runtimeTempSkybox != null)
-            {
-                Color fadedColor = Color.Lerp(startColor, Color.white, t);
-                SetMaterialColor(runtimeTempSkybox, fadedColor);
-            }
-
             yield return null;
         }
 
-        RestoreSkybox();
+        if (windowRect != null) windowRect.anchoredPosition = originalPos;
     }
 
-    private void RestoreSkybox()
+    private IEnumerator FadeCanvasGroupRoutine(CanvasGroup cg, float startAlpha, float endAlpha, float duration)
     {
-        if (originalSkybox != null)
+        if (cg == null || duration <= 0f) yield break;
+        float elapsed = 0f;
+        cg.alpha = startAlpha;
+
+        while (elapsed < duration)
         {
-            RenderSettings.skybox = originalSkybox;
-            DynamicGI.UpdateEnvironment();
+            if (cg == null) yield break;
+            elapsed += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
+            yield return null;
         }
 
-        if (runtimeTempSkybox != null)
-        {
-            Destroy(runtimeTempSkybox);
-            runtimeTempSkybox = null;
-        }
+        if (cg != null) cg.alpha = endAlpha;
+    }
+
+    private void DestroyUI()
+    {
+        if (shakeCoroutine != null) { StopCoroutine(shakeCoroutine); shakeCoroutine = null; }
+        if (uiCanvasObj != null) { Destroy(uiCanvasObj); uiCanvasObj = null; windowRect = null; canvasGroup = null; }
     }
 }

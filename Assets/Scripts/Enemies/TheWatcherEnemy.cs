@@ -80,16 +80,25 @@ public class TheWatcherEnemy : EnemyBase
     [Tooltip("Time limit (in seconds) the player has to collect the item before taking damage.")]
     [SerializeField] private float collectionTimeLimit = 15f;
 
-    [Tooltip("If enabled, attempts to dynamically fetch the map radius from MapGenerator.")]
+    [Tooltip("If enabled, spawns the item near the player's current location instead of map center.")]
+    [SerializeField] private bool spawnNearPlayer = true;
+
+    [Tooltip("Minimum spawn distance from player when spawnNearPlayer is active.")]
+    [SerializeField] private float minPlayerSpawnDistance = 8f;
+
+    [Tooltip("Maximum spawn distance from player when spawnNearPlayer is active.")]
+    [SerializeField] private float maxPlayerSpawnDistance = 18f;
+
+    [Tooltip("If enabled, attempts to dynamically fetch the map radius from MapGenerator as fallback.")]
     [SerializeField] private bool useMapGeneratorRadius = true;
 
-    [Tooltip("Center point for spawning fog items if MapGenerator is not found.")]
+    [Tooltip("Center point for spawning fog items if MapGenerator and Player are not found.")]
     [SerializeField] private Vector3 mapCenterPosition = Vector3.zero;
 
-    [Tooltip("Fallback radius within which fog items spawn if MapGenerator is not found.")]
+    [Tooltip("Fallback radius within which fog items spawn if MapGenerator or Player are not found.")]
     [SerializeField] private float mapSpawnRadius = 25f;
 
-    [Tooltip("Fallback Y height if ground raycasting fails.")]
+    [Tooltip("Fallback Y height if ground raycasting fails when not spawning near player.")]
     [SerializeField] private float groundYPosition = 0f;
 
     [Tooltip("Vertical offset above the detected floor to prevent clipping.")]
@@ -255,7 +264,7 @@ public class TheWatcherEnemy : EnemyBase
 
         SetWatcherMessage(watcherMessage);
 
-        // 4. Spawn Collectible Item on Ground in Fog (Map-wide)
+        // 4. Spawn Collectible Item on Ground in Fog (Near player or map-wide)
         SpawnFogItem();
 
         // 5. Active Countdown Phase
@@ -510,26 +519,56 @@ public class TheWatcherEnemy : EnemyBase
     {
         DestroyFogItem(false);
 
-        float effectiveRadius = mapSpawnRadius;
         Vector3 centerPoint = mapCenterPosition;
+        float minRadius = 0f;
+        float maxRadius = mapSpawnRadius;
+        Transform targetPlayerTransform = null;
 
-        // Fetch dynamic map radius and center point directly from MapGenerator
-        MapGenerator mapGen = MapGenerator.Instance != null ? MapGenerator.Instance : FindFirstObjectByType<MapGenerator>();
-        if (useMapGeneratorRadius && mapGen != null)
+        // Locate player transform
+        if (playerController != null)
         {
-            centerPoint = mapGen.transform.position;
-            effectiveRadius = mapGen.mapRadius; // Change variable name if different in MapGenerator
+            targetPlayerTransform = playerController.transform;
+        }
+        else
+        {
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj != null)
+            {
+                targetPlayerTransform = playerObj.transform;
+            }
+        }
+
+        bool isPlayerSpawn = spawnNearPlayer && targetPlayerTransform != null;
+
+        if (isPlayerSpawn)
+        {
+            centerPoint = targetPlayerTransform.position;
+            minRadius = minPlayerSpawnDistance;
+            maxRadius = maxPlayerSpawnDistance;
+        }
+        else
+        {
+            // Dynamic map center/radius fallback
+            MapGenerator mapGen = MapGenerator.Instance != null ? MapGenerator.Instance : FindFirstObjectByType<MapGenerator>();
+            if (useMapGeneratorRadius && mapGen != null)
+            {
+                centerPoint = mapGen.transform.position;
+                maxRadius = mapGen.mapRadius;
+            }
         }
 
         Vector3 spawnPos = centerPoint;
         bool foundGround = false;
         int maxAttempts = 30;
 
-        // Raycast downwards anywhere within map bounds to snap cleanly onto floor geometry
+        // Raycast downwards near player/center to snap cleanly onto ground geometry
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            Vector2 randomCircle = Random.insideUnitCircle * effectiveRadius;
-            Vector3 candidatePos = centerPoint + new Vector3(randomCircle.x, 0f, randomCircle.y);
+            Vector2 randomDir = Random.insideUnitCircle.normalized;
+            if (randomDir == Vector2.zero) randomDir = Vector2.right;
+
+            float randomDist = Random.Range(minRadius, maxRadius);
+            Vector3 candidatePos = centerPoint + new Vector3(randomDir.x * randomDist, 0f, randomDir.y * randomDist);
             Vector3 rayOrigin = candidatePos + Vector3.up * 50f;
 
             if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 100f))
@@ -543,12 +582,23 @@ public class TheWatcherEnemy : EnemyBase
             }
         }
 
-        // Fallback positioning if raycast misses walkable geometry
+        // Fallback positioning if raycast misses walkable floor geometry
         if (!foundGround)
         {
-            Vector2 fallbackCircle = Random.insideUnitCircle * effectiveRadius;
-            spawnPos = centerPoint + new Vector3(fallbackCircle.x, 0f, fallbackCircle.y);
-            spawnPos.y = groundYPosition;
+            Vector2 fallbackDir = Random.insideUnitCircle.normalized;
+            if (fallbackDir == Vector2.zero) fallbackDir = Vector2.right;
+
+            float fallbackDist = Random.Range(minRadius, maxRadius);
+            spawnPos = centerPoint + new Vector3(fallbackDir.x * fallbackDist, 0f, fallbackDir.y * fallbackDist);
+
+            if (isPlayerSpawn)
+            {
+                spawnPos.y = targetPlayerTransform.position.y + groundYOffset;
+            }
+            else
+            {
+                spawnPos.y = groundYPosition;
+            }
         }
 
         if (fogItemPrefab != null)

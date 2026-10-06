@@ -134,7 +134,10 @@ MonoBehaviour:
   letterShakeSpeed: 25
   fogItemPrefab: {fileID: 4594314241690102415, guid: 082160d7ef1700d498129ad4fc6277eb, type: 3}
   collectionTimeLimit: 30
-  spawnAroundPlayer: 1
+  spawnNearPlayer: 1
+  minPlayerSpawnDistance: 50
+  maxPlayerSpawnDistance: 65
+  useMapGeneratorRadius: 1
   mapCenterPosition: {x: 0, y: 0, z: 0}
   mapSpawnRadius: 100
   groundYPosition: 0

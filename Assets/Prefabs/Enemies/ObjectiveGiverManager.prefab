@@ -55,10 +55,36 @@ MonoBehaviour:
   destroyOnFall: 1
   fallDistance: 20
   damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
-  objectiveSound: {fileID: 0}
+  windowSize: {x: 560, y: 260}
+  windowBackgroundColor: {r: 0.75, g: 0.75, b: 0.75, a: 1}
+  titleBarColor: {r: 0, g: 0, b: 0.5, a: 1}
+  customFont: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
+  maxAllowedJumps: 2
+  maxJumpsHeader: 'system_error.exe - [JUMP BUDGET EXCEEDED]'
+  maxJumpsMessages:
+  - DO NOT JUMP MORE THAN 3 TIMES.
+  - 'JUMP ALLOTMENT: 3 MAXIMUM.'
+  - EXCEEDING 3 JUMPS WILL CAUSE DESYNC.
+  requiredStaticDuration: 1
+  stillnessHeader: 'system_warning.sys - [VISION LOCKED]'
+  stillnessMessages:
+  - DO NOT TURN YOUR HEAD.
+  - THE CAMERA IS WATCHING. KEEP VISION FIXED.
+  - STILLNESS OF VISION REQUIRED.
+  airborneHeader: 'system_error.exe - [GRAVITY DESYNC]'
+  airborneMessages:
+  - THE FLOOR IS NO LONGER SAFE. JUMP NEEDED.
+  - AIRBORNE STATE REQUIRED IMMEDIATELY.
+  - SEPARATE FROM THE SURFACE BEFORE TIME EXPIRES.
+  objectiveDuration: 2.5
+  mouseSensitivityThreshold: 0.15
+  windowShakeMagnitude: 6
   initialDelay: 22.5
   minSpawnInterval: 45
   maxSpawnInterval: 90
+  popUpSound: {fileID: 0}
+  failSound: {fileID: 0}
+  successSound: {fileID: 0}
 --- !u!114 &-3443321224294276434
 MonoBehaviour:
   m_ObjectHideFlags: 0

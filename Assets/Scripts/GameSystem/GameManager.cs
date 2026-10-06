@@ -161,6 +161,16 @@ public class GameManager : MonoBehaviour
     [Range(0f, 1f)]
     public float musicVolume = 0.5f;
 
+    [Header("Post-Exit Atmosphere & Music")]
+    [Tooltip("Default Skybox material for lobby and active gameplay.")]
+    public Material defaultSkybox;
+
+    [Tooltip("Skybox material applied once the exit portal opens.")]
+    public Material postExitSkybox;
+
+    [Tooltip("Array of randomized music tracks to choose from once the exit portal opens.")]
+    public AudioClip[] postExitMusicList;
+
     [Header("UI & Objective Settings")]
     public TextMeshProUGUI itemCounterText;
     public string displayFormat = "Items: {0} / {1}";
@@ -614,6 +624,19 @@ public class GameManager : MonoBehaviour
     {
         PlayLevelCompleteSound();
 
+        // Swap to post-exit skybox
+        if (postExitSkybox != null)
+        {
+            RenderSettings.skybox = postExitSkybox;
+        }
+
+        // Pick and play a random BGM from the post-exit music pool
+        if (postExitMusicList != null && postExitMusicList.Length > 0)
+        {
+            AudioClip selectedBGM = postExitMusicList[Random.Range(0, postExitMusicList.Length)];
+            PlayMusic(selectedBGM);
+        }
+
         if (finishPortalPrefab != null && MapGenerator.Instance != null && activeFinishPortal == null)
         {
             Vector3 spawnPosition = MapGenerator.Instance.StartChunkWorldPosition + finishOffsetAboveStart;
@@ -672,6 +695,12 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
+        // Reset skybox back to default
+        if (defaultSkybox != null)
+        {
+            RenderSettings.skybox = defaultSkybox;
+        }
+
         // Hide item counter and collapse elements in lobby
         if (itemCounterText != null) itemCounterText.gameObject.SetActive(false);
         if (collapseMeterText != null) collapseMeterText.gameObject.SetActive(false);
@@ -949,7 +978,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Update SpawnSingleEnemy return type to return the spawned enemy GameObject
     private GameObject SpawnSingleEnemy(GameObject prefab, Vector3 spawnOrigin)
     {
         Vector3 spawnPos;
@@ -1009,6 +1037,12 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        // Reset skybox back to default when level starts
+        if (defaultSkybox != null)
+        {
+            RenderSettings.skybox = defaultSkybox;
+        }
+
         if (lobbyPhaseWorldText != null)
         {
             lobbyPhaseWorldText.gameObject.SetActive(false);

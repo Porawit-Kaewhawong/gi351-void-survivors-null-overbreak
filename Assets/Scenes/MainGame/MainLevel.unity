@@ -25,8 +25,8 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 0}
+  m_SubtractiveShadowColor: {r: 0.45817018, g: 0.52073854, b: 0.6792453, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -347,6 +347,13 @@ MonoBehaviour:
   lobbyMusic: {fileID: 8300000, guid: 6d3491419adecd14abbd7c188cc0ea20, type: 3}
   inLevelMusic: {fileID: 8300000, guid: ee1dff191b3f1cf46939045a47fdc8c2, type: 3}
   musicVolume: 0.5
+  defaultSkybox: {fileID: 2100000, guid: 7aa86039453563f45a792628699382fc, type: 2}
+  postExitSkybox: {fileID: 2100000, guid: 8b7dd0809c7c6498789fa32a61eaa6cb, type: 2}
+  postExitMusicList:
+  - {fileID: 8300000, guid: be55fd8910c256445914ddec8ab5f093, type: 3}
+  - {fileID: 8300000, guid: f27bfc9ac6425f3438a589297672f263, type: 3}
+  - {fileID: 8300000, guid: 0d64562ffae52014ebfa7867a3c39e9e, type: 3}
+  - {fileID: 8300000, guid: 106933d09da8934499e27a27e58d993d, type: 3}
   itemCounterText: {fileID: 488186643}
   displayFormat: '{0} / {1}'
   counterPunchScale: 1.2
@@ -613,27 +620,27 @@ MonoBehaviour:
     targetStat: 5
     buffValue: 2
   enemyBuffOptions:
-  - title: Random Enemy Count Increase
-    description: Increase 2 random enemy
-    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
-    optionID: enemy_count
-    icon: {fileID: 0}
-    targetStat: 1
-    buffValue: 2
   - title: Enemies Speed Boost
-    description: Increase enemies' speed boosts by 25%
+    description: Increase enemies' speed boosts by 30%
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_speed
     icon: {fileID: 0}
     targetStat: 2
-    buffValue: 25
+    buffValue: 30
+  - title: Random Enemy Count Increase
+    description: Increase 3 random enemies
+    prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
+    optionID: enemy_count
+    icon: {fileID: 0}
+    targetStat: 1
+    buffValue: 3
   - title: Enemies Health Boost
-    description: Increase enemies' health boosts by 25%
+    description: Increase enemies' health boosts by 30%
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_health
     icon: {fileID: 0}
     targetStat: 3
-    buffValue: 25
+    buffValue: 30
   levelRuleOptions:
   - title: Tilted Platforms
     description: Tilted Platforms by 25%
@@ -733,7 +740,7 @@ Camera:
   m_GameObject: {fileID: 145851546}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 1
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
