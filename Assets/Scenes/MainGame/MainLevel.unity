@@ -670,21 +670,21 @@ MonoBehaviour:
     optionID: shield
     icon: {fileID: 21300000, guid: 6ffeeba52d7788e438c97551f04bd35e, type: 3}
     targetStat: 4
-    buffValue: 2
+    buffValue: 1
   - title: Online-shopping Damage Absorber
     description: Can absorb damage up to 4 hits
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: shield
     icon: {fileID: 21300000, guid: 3dd3fa29dc85da1468b9c2f31b6ec721, type: 3}
     targetStat: 4
-    buffValue: 4
+    buffValue: 2
   - title: Perfect Damage Absorber
     description: Can absorb damage up to 6 hits
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: shield
     icon: {fileID: 21300000, guid: 94395d4b18d27da4fbe30670d9471420, type: 3}
     targetStat: 4
-    buffValue: 6
+    buffValue: 3
   - title: Trashcan-level Magnet
     description: 'Base pickup range increases by 10%
 

@@ -26,19 +26,33 @@ public class MainMenuController : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // Check if a LoreDialogueManager exists in scene to handle intro dialogue
         if (LoreDialogueManager.Instance != null)
         {
             if (mainButtonsPanel != null) mainButtonsPanel.SetActive(false);
 
             LoreDialogueManager.Instance.StartIntroDialogue(() =>
             {
-                SceneManager.LoadScene(firstLevelSceneName);
+                // Trigger wipe transition when intro dialogue completes
+                if (SceneTransitionManager.Instance != null)
+                {
+                    SceneTransitionManager.Instance.TransitionToScene(firstLevelSceneName);
+                }
+                else
+                {
+                    SceneManager.LoadScene(firstLevelSceneName);
+                }
             });
         }
         else
         {
-            SceneManager.LoadScene(firstLevelSceneName);
+            if (SceneTransitionManager.Instance != null)
+            {
+                SceneTransitionManager.Instance.TransitionToScene(firstLevelSceneName);
+            }
+            else
+            {
+                SceneManager.LoadScene(firstLevelSceneName);
+            }
         }
     }
 

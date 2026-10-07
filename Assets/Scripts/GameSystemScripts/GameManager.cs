@@ -488,6 +488,7 @@ public class GameManager : MonoBehaviour
 
         musicAudioSource.clip = musicClip;
         musicAudioSource.volume = musicVolume;
+        musicAudioSource.loop = true; // Ensures all BGM tracks (Lobby, In-Level, Post-Exit) loop continuously
         musicAudioSource.Play();
     }
 
