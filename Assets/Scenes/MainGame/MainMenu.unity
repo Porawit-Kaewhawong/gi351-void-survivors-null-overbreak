@@ -194,7 +194,7 @@ MonoBehaviour:
   - The cycle begins anew...
   - You awaken in a place forgotten by time, bound to an endless struggle.
   - Step forward, wanderer. Prove your worth.
-  playIntroOnlyOnFirstLaunch: 1
+  playIntroOnlyOnFirstLaunch: 0
   deathSpeakerName: ???
   deathLorePhrases:
   - Death is not the end here... merely a reset of the balance.
