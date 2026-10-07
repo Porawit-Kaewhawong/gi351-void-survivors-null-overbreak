@@ -529,7 +529,16 @@ public class TheWatcherEnemy : EnemyBase
         if (useMapGeneratorRadius && mapGen != null)
         {
             absoluteMapCenter = mapGen.transform.position;
-            rawMapRadius = mapGen.mapRadius;
+
+            // Check if MapGenerator uses chunkSize or tileSize multiplier for chunk-based maps
+            float unitMultiplier = 1f;
+            var chunkSizeField = mapGen.GetType().GetField("chunkSize") ?? mapGen.GetType().GetField("tileSize");
+            if (chunkSizeField != null)
+            {
+                unitMultiplier = System.Convert.ToSingle(chunkSizeField.GetValue(mapGen));
+            }
+
+            rawMapRadius = mapGen.mapRadius * unitMultiplier;
         }
 
         float safeMapRadius = Mathf.Max(2f, rawMapRadius - mapEdgeSafetyBuffer);
@@ -552,10 +561,18 @@ public class TheWatcherEnemy : EnemyBase
 
         Vector3 spawnPos = spawnCenter;
         bool foundGround = false;
-        int maxAttempts = 30;
+        int maxAttempts = 35;
 
-        // Use groundLayer mask directly if assigned; otherwise fallback to raycasting everything except triggers
-        int layerMaskToUse = groundLayer.value != 0 ? groundLayer.value : ~0;
+        // Build robust layer mask: default to common environment layers if groundLayer is unassigned in Inspector
+        int layerMaskToUse = groundLayer.value;
+        if (layerMaskToUse == 0)
+        {
+            layerMaskToUse = LayerMask.GetMask("Default", "Ground", "Environment", "Terrain", "Floor");
+            if (layerMaskToUse == 0) layerMaskToUse = ~0 & ~(1 << 2); // Exclude Ignore Raycast layer
+        }
+
+        // Establish reference height near player floor level
+        float referenceY = targetPlayerTransform != null ? targetPlayerTransform.position.y : groundYPosition;
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
@@ -565,7 +582,7 @@ public class TheWatcherEnemy : EnemyBase
             float randomDist = Random.Range(minRadius, maxRadius);
             Vector3 candidatePos = spawnCenter + new Vector3(randomDir.x * randomDist, 0f, randomDir.y * randomDist);
 
-            // Safety Check 1: Clamp candidate position strictly inside safe map boundary
+            // Clamp candidate position strictly inside safe map boundary
             Vector3 distFromMapCenter = candidatePos - absoluteMapCenter;
             distFromMapCenter.y = 0f;
 
@@ -574,12 +591,12 @@ public class TheWatcherEnemy : EnemyBase
                 candidatePos = absoluteMapCenter + distFromMapCenter.normalized * safeMapRadius;
             }
 
-            // Raycast vertically downward filtering specifically for ground colliders and ignoring triggers
-            Vector3 rayOrigin = candidatePos + Vector3.up * 100f;
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 200f, layerMaskToUse, QueryTriggerInteraction.Ignore))
+            // Raycast starting close to current floor level (10m up, 20m down) to avoid hitting deep abyss triggers
+            Vector3 rayOrigin = new Vector3(candidatePos.x, referenceY + 10f, candidatePos.z);
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 20f, layerMaskToUse, QueryTriggerInteraction.Ignore))
             {
-                // Verify hit object layer matches ground layer if mask was unassigned
-                if (groundLayer.value == 0 || ((1 << hit.collider.gameObject.layer) & groundLayer.value) != 0)
+                // Verify hit surface is a horizontal floor surface (upward normal > 0.6) and not a cliff/wall/boundary
+                if (hit.normal.y > 0.6f)
                 {
                     Vector3 hitDistFromCenter = hit.point - absoluteMapCenter;
                     hitDistFromCenter.y = 0f;
@@ -594,24 +611,18 @@ public class TheWatcherEnemy : EnemyBase
             }
         }
 
-        // Secondary Fallback: Perform a targeted vertical raycast from directly above spawn center
+        // Secondary Safe Fallback: Direct downward check at player's location
         if (!foundGround)
         {
-            Vector3 fallbackOrigin = spawnCenter + Vector3.up * 100f;
-            if (Physics.Raycast(fallbackOrigin, Vector3.down, out RaycastHit fallbackHit, 200f, layerMaskToUse, QueryTriggerInteraction.Ignore))
+            Vector3 fallbackOrigin = new Vector3(spawnCenter.x, referenceY + 10f, spawnCenter.z);
+            if (Physics.Raycast(fallbackOrigin, Vector3.down, out RaycastHit fallbackHit, 20f, layerMaskToUse, QueryTriggerInteraction.Ignore) && fallbackHit.normal.y > 0.6f)
             {
                 spawnPos = fallbackHit.point + Vector3.up * groundYOffset;
             }
             else
             {
-                if (isPlayerSpawn)
-                {
-                    spawnPos.y = targetPlayerTransform.position.y + groundYOffset;
-                }
-                else
-                {
-                    spawnPos.y = groundYPosition;
-                }
+                // Guaranteed safe position on top of player's current location
+                spawnPos = isPlayerSpawn ? targetPlayerTransform.position + Vector3.up * groundYOffset : absoluteMapCenter;
             }
 
             // Final boundary clamp

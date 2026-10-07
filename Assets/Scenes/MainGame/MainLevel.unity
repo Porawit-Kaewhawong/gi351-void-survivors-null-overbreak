@@ -775,12 +775,12 @@ MonoBehaviour:
     targetStat: 1
     buffValue: 3
   - title: Enemies Health Boost
-    description: Increase enemies' health boosts by 100%
+    description: Increase enemies' health boosts by 50%
     prefab3D: {fileID: 7671229338807409056, guid: bc476e0998d2afd47a2c5ae1e5fb8f44, type: 3}
     optionID: enemy_health
     icon: {fileID: 21300000, guid: a8692444ae786aa4582dd6f7ad191442, type: 3}
     targetStat: 3
-    buffValue: 100
+    buffValue: 50
   levelRuleOptions:
   - title: Tilted Platforms
     description: Tilted Platforms by 25%
@@ -6394,6 +6394,10 @@ PrefabInstance:
       propertyPath: cameraTransform
       value: 
       objectReference: {fileID: 145851549}
+    - target: {fileID: 6470244649546294591, guid: 01b6d584ddddac84d9a096d35eab821a, type: 3}
+      propertyPath: basePickupRadius
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6470244649546294591, guid: 01b6d584ddddac84d9a096d35eab821a, type: 3}
       propertyPath: damageOverlayImage
       value: 

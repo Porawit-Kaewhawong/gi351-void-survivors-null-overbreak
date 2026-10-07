@@ -10,8 +10,8 @@ public class CheatMenu : MonoBehaviour
     public KeyCode alternateToggleKey = KeyCode.F1;
 
     [Header("Menu Settings")]
-    public float windowWidth = 450f;
-    public float windowHeight = 600f;
+    public float windowWidth = 480f;
+    public float windowHeight = 620f;
     [Tooltip("Pause gameplay time when the cheat menu is active.")]
     public bool pauseTimeWhenOpen = true;
 
@@ -23,7 +23,7 @@ public class CheatMenu : MonoBehaviour
     private Vector2 scrollPosition = Vector2.zero;
     private int selectedTab = 0;
     private readonly string[] tabNames = new string[] {
-        "Level",
+        "Level & Progression",
         "Weapons & Buffs",
         "Enemies",
         "Rules",
@@ -205,22 +205,17 @@ public class CheatMenu : MonoBehaviour
         GUI.DragWindow(new Rect(0, 0, windowWidth, 25));
     }
 
-    // --- TAB 1: LEVEL CONTROLS ---
+    // --- TAB 1: LEVEL & PROGRESSION CONTROLS ---
     private void DrawLevelControls()
     {
-        GUILayout.Label("<b>Level Navigation</b>", headerStyle);
+        GUILayout.Label("<b>Instant Level Fast-Forward (Raw Skip)</b>", headerStyle);
 
-        if (GUILayout.Button("⏩ Skip Current Level (Trigger Finish Portal)", buttonStyle, GUILayout.MinHeight(32)))
+        if (GUILayout.Button("⏩ Trigger Finish Portal / Complete Level", buttonStyle, GUILayout.MinHeight(32)))
         {
             GameManager.Instance.TriggerFinish();
         }
 
-        if (GUILayout.Button("🌀 Fast-Forward +1 Level & Radius", buttonStyle, GUILayout.MinHeight(32)))
-        {
-            JumpLevels(1);
-        }
-
-        GUILayout.Space(10);
+        GUILayout.Space(5);
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("+1 Level (+1 Radius)", buttonStyle, GUILayout.MinHeight(30))) JumpLevels(1);
         if (GUILayout.Button("+5 Levels (+5 Radius)", buttonStyle, GUILayout.MinHeight(30))) JumpLevels(5);
@@ -228,15 +223,28 @@ public class CheatMenu : MonoBehaviour
         GUILayout.EndHorizontal();
 
         GUILayout.Space(15);
-        GUILayout.Label("<b>Simulated Level Skips</b>", headerStyle);
+        GUILayout.Label("<b>Simulated Quick Progression (Real Gameplay Order)</b>", headerStyle);
+        GUILayout.Label("<i>Executes exact lobby rotation (3 choice phases per level). Picks 1 option per phase from GameManager option pools.</i>", boldLabelStyle);
+        GUILayout.Space(5);
 
-        if (GUILayout.Button("🎲 Skip +10 Levels with 3-Choice Progression\n<i>(Selection 1: Rotated Category | Selections 2 & 3: Random Category Choices)</i>", buttonStyle, GUILayout.MinHeight(48)))
+        if (GUILayout.Button("🎲 +1 Level with Real Choice Order (3 Picks)", buttonStyle, GUILayout.MinHeight(34)))
         {
-            SkipLevelsWithSimulatedChoices(levelCount: 10, choicesPerLevel: 3);
+            SkipLevelsWithSimulatedChoices(levelCount: 1);
         }
 
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("🎲 +5 Levels Draft (+15 Picks)", buttonStyle, GUILayout.MinHeight(34)))
+        {
+            SkipLevelsWithSimulatedChoices(levelCount: 5);
+        }
+        if (GUILayout.Button("🎲 +10 Levels Draft (+30 Picks)", buttonStyle, GUILayout.MinHeight(34)))
+        {
+            SkipLevelsWithSimulatedChoices(levelCount: 10);
+        }
+        GUILayout.EndHorizontal();
+
         GUILayout.Space(15);
-        GUILayout.Label("<b>Player Cheats & Utilities</b>", headerStyle);
+        GUILayout.Label("<b>Player Utilities</b>", headerStyle);
 
         GodMode = GUILayout.Toggle(GodMode, " 🛡️ God Mode (Invincibility)");
 
@@ -287,9 +295,9 @@ public class CheatMenu : MonoBehaviour
 
         GUILayout.Space(10);
 
-        // SECTION 2: PLAYER BUFFS (TIERED)
+        // SECTION 2: PLAYER BUFFS (TIERED - INFINITE STACKABLE)
         GUILayout.BeginVertical(boxStyle);
-        GUILayout.Label("<b>Player Buff Options (Tiered Progression)</b>", headerStyle);
+        GUILayout.Label("<b>Player Buff Options (Infinite Tiered Stacking)</b>", headerStyle);
         GUILayout.Space(5);
 
         if (GameManager.Instance.playerBuffOptions != null && GameManager.Instance.playerBuffOptions.Count > 0)
@@ -303,24 +311,20 @@ public class CheatMenu : MonoBehaviour
                 string key = group.Key;
                 var sortedBuffs = group.OrderBy(b => b.buffValue).ToList();
                 int acquiredCount = GameManager.Instance.ActiveModifiers.Count(m =>
+                    m is PlayerBuffOption &&
                     (!string.IsNullOrEmpty(m.optionID) ? m.optionID == key : m.title == key));
 
-                if (acquiredCount < sortedBuffs.Count)
-                {
-                    PlayerBuffOption nextBuff = sortedBuffs[acquiredCount];
-                    string labelText = $"Apply Tier {acquiredCount + 1}/{sortedBuffs.Count}: <b>{nextBuff.title}</b> (+{nextBuff.buffValue}% {nextBuff.targetStat})";
+                // If acquired count is within defined tiers, pick that tier; otherwise repeat max tier indefinitely
+                PlayerBuffOption buffToApply = acquiredCount < sortedBuffs.Count ? sortedBuffs[acquiredCount] : sortedBuffs.Last();
+                string tierInfo = acquiredCount < sortedBuffs.Count
+                    ? $"Tier {acquiredCount + 1}/{sortedBuffs.Count}"
+                    : $"Max Tier (Stack x{acquiredCount + 1})";
 
-                    if (GUILayout.Button(labelText, buttonStyle, GUILayout.MinHeight(36)))
-                    {
-                        ApplyModifierDirectly(nextBuff);
-                    }
-                }
-                else
+                string labelText = $"Apply {tierInfo}: <b>{buffToApply.title}</b> (+{buffToApply.buffValue}% {buffToApply.targetStat})";
+
+                if (GUILayout.Button(labelText, buttonStyle, GUILayout.MinHeight(36)))
                 {
-                    PlayerBuffOption maxBuff = sortedBuffs.Last();
-                    GUI.enabled = false;
-                    GUILayout.Button($"<b>{maxBuff.title}</b> [MAX TIER REACHED ({sortedBuffs.Count}/{sortedBuffs.Count})]", buttonStyle, GUILayout.MinHeight(32));
-                    GUI.enabled = true;
+                    ApplyModifierDirectly(buffToApply);
                 }
             }
         }
@@ -367,9 +371,9 @@ public class CheatMenu : MonoBehaviour
 
         GUILayout.Space(10);
 
-        // SECTION 2: ENEMY BUFFS (TIERED)
+        // SECTION 2: ENEMY BUFFS (TIERED - INFINITE STACKABLE)
         GUILayout.BeginVertical(boxStyle);
-        GUILayout.Label("<b>Enemy Buff Options (Tiered Progression)</b>", headerStyle);
+        GUILayout.Label("<b>Enemy Buff Options (Infinite Tiered Stacking)</b>", headerStyle);
         GUILayout.Space(5);
 
         if (GameManager.Instance.enemyBuffOptions != null && GameManager.Instance.enemyBuffOptions.Count > 0)
@@ -383,24 +387,20 @@ public class CheatMenu : MonoBehaviour
                 string key = group.Key;
                 var sortedBuffs = group.OrderBy(b => b.buffValue).ToList();
                 int acquiredCount = GameManager.Instance.ActiveModifiers.Count(m =>
+                    m is EnemyBuffOption &&
                     (!string.IsNullOrEmpty(m.optionID) ? m.optionID == key : m.title == key));
 
-                if (acquiredCount < sortedBuffs.Count)
-                {
-                    EnemyBuffOption nextBuff = sortedBuffs[acquiredCount];
-                    string labelText = $"Apply Tier {acquiredCount + 1}/{sortedBuffs.Count}: <b>{nextBuff.title}</b> (+{nextBuff.buffValue} {nextBuff.targetStat})";
+                // If acquired count is within defined tiers, pick that tier; otherwise repeat max tier indefinitely
+                EnemyBuffOption buffToApply = acquiredCount < sortedBuffs.Count ? sortedBuffs[acquiredCount] : sortedBuffs.Last();
+                string tierInfo = acquiredCount < sortedBuffs.Count
+                    ? $"Tier {acquiredCount + 1}/{sortedBuffs.Count}"
+                    : $"Max Tier (Stack x{acquiredCount + 1})";
 
-                    if (GUILayout.Button(labelText, buttonStyle, GUILayout.MinHeight(36)))
-                    {
-                        ApplyModifierDirectly(nextBuff);
-                    }
-                }
-                else
+                string labelText = $"Apply {tierInfo}: <b>{buffToApply.title}</b> (+{buffToApply.buffValue} {buffToApply.targetStat})";
+
+                if (GUILayout.Button(labelText, buttonStyle, GUILayout.MinHeight(36)))
                 {
-                    EnemyBuffOption maxBuff = sortedBuffs.Last();
-                    GUI.enabled = false;
-                    GUILayout.Button($"<b>{maxBuff.title}</b> [MAX TIER REACHED ({sortedBuffs.Count}/{sortedBuffs.Count})]", buttonStyle, GUILayout.MinHeight(32));
-                    GUI.enabled = true;
+                    ApplyModifierDirectly(buffToApply);
                 }
             }
         }
@@ -498,7 +498,12 @@ public class CheatMenu : MonoBehaviour
 
     // --- HELPER METHODS FOR SIMULATED LEVEL SKIPS & MODIFIERS ---
 
-    private void SkipLevelsWithSimulatedChoices(int levelCount, int choicesPerLevel = 3)
+    /// <summary>
+    /// Simulates exact real gameplay level choices.
+    /// Runs 3 selection phases per level, starting with the level's primary category
+    /// and cycling sequentially via GetNextSelectionType().
+    /// </summary>
+    private void SkipLevelsWithSimulatedChoices(int levelCount)
     {
         if (GameManager.Instance == null)
         {
@@ -510,24 +515,31 @@ public class CheatMenu : MonoBehaviour
 
         for (int i = 0; i < levelCount; i++)
         {
-            int simulatedLevel = startLevel + i;
+            int levelToSimulate = startLevel + i;
 
-            for (int choiceIndex = 0; choiceIndex < choicesPerLevel; choiceIndex++)
+            // Phase 1 Category: Primary rotated category for this level
+            LobbySelectionType currentType = GameManager.Instance.GetSelectionTypeForLevel(levelToSimulate);
+
+            // Execute 3 choice phases per level
+            for (int phase = 0; phase < 3; phase++)
             {
-                if (choiceIndex == 0)
+                // Fetch up to 3 pedestal choices using GameManager's pool generator
+                List<LobbyOption> offeredChoices = GameManager.Instance.FetchOptionPoolForType(currentType);
+
+                if (offeredChoices != null && offeredChoices.Count > 0)
                 {
-                    // 1st Choice: Rotated Primary Category for Level
-                    LobbySelectionType primaryType = GameManager.Instance.GetSelectionTypeForLevel(simulatedLevel);
-                    ApplyRandomFromType(primaryType);
+                    // Randomly pick 1 choice out of the 3 offered pedestals
+                    LobbyOption pickedOption = offeredChoices[Random.Range(0, offeredChoices.Count)];
+                    ApplyModifierDirectly(pickedOption);
                 }
-                else
-                {
-                    // 2nd & 3rd Choices: Random Non-Rule Category (Weapon, EnemyType, PlayerBuff, EnemyBuff)
-                    LobbySelectionType secondaryType = (LobbySelectionType)Random.Range(0, 4);
-                    ApplyRandomFromType(secondaryType);
-                }
+
+                // Advance category to next phase matching GameManager's GetNextSelectionType order
+                currentType = GetNextSelectionType(currentType);
             }
         }
+
+        // Advance level counter & map radius
+        JumpLevels(levelCount);
 
         // Apply rules to active gameplay environment if outside lobby
         bool isInLobby = GameManager.Instance.lobbyEnvironmentRoot != null && GameManager.Instance.lobbyEnvironmentRoot.activeInHierarchy;
@@ -536,23 +548,45 @@ public class CheatMenu : MonoBehaviour
             LevelRuleManager.Instance.ApplyActiveLevelRules();
         }
 
-        // Advance level progress
-        JumpLevels(levelCount);
-
-        // Update player weapon visual slots
+        // Re-sync player weapon objects
         ReequipWeaponsOnPlayer();
 
-        Debug.Log($"[CheatMenu] Simulated {levelCount} levels with {choicesPerLevel}-choice progression.");
+        Debug.Log($"[CheatMenu] Fast-forwarded {levelCount} level(s) using exact gameplay rotation order ({levelCount * 3} choices processed).");
     }
 
-    private void ApplyRandomFromType(LobbySelectionType selectionType)
+    /// <summary>
+    /// Matches GameManager's GetNextSelectionType() sequence (cycling PlayerWeapon -> EnemySelection -> PlayerBuff -> EnemyBuff).
+    /// </summary>
+    private LobbySelectionType GetNextSelectionType(LobbySelectionType currentType)
     {
-        List<LobbyOption> pool = GameManager.Instance.FetchOptionPoolForType(selectionType);
+        int totalCategories = 4; // Cycles through PlayerWeapon, EnemySelection, PlayerBuff, EnemyBuff
+        int nextIndex = ((int)currentType + 1) % totalCategories;
 
-        if (pool == null || pool.Count == 0) return;
+        for (int i = 0; i < totalCategories; i++)
+        {
+            LobbySelectionType candidate = (LobbySelectionType)((nextIndex + i) % totalCategories);
+            if (HasAvailableOptionsInGameManager(candidate))
+            {
+                return candidate;
+            }
+        }
 
-        int randomIndex = Random.Range(0, pool.Count);
-        ApplyModifierDirectly(pool[randomIndex]);
+        return currentType;
+    }
+
+    private bool HasAvailableOptionsInGameManager(LobbySelectionType type)
+    {
+        if (GameManager.Instance == null) return false;
+
+        switch (type)
+        {
+            case LobbySelectionType.PlayerWeapon: return GameManager.Instance.playerWeaponOptions != null && GameManager.Instance.playerWeaponOptions.Count > 0;
+            case LobbySelectionType.EnemySelection: return GameManager.Instance.enemySelectionOptions != null && GameManager.Instance.enemySelectionOptions.Count > 0;
+            case LobbySelectionType.PlayerBuff: return GameManager.Instance.playerBuffOptions != null && GameManager.Instance.playerBuffOptions.Count > 0;
+            case LobbySelectionType.EnemyBuff: return GameManager.Instance.enemyBuffOptions != null && GameManager.Instance.enemyBuffOptions.Count > 0;
+            case LobbySelectionType.LevelRule: return GameManager.Instance.levelRuleOptions != null && GameManager.Instance.levelRuleOptions.Count > 0;
+            default: return false;
+        }
     }
 
     private void JumpLevels(int count)
@@ -564,8 +598,13 @@ public class CheatMenu : MonoBehaviour
             MapGenerator.Instance.mapRadius += count;
         }
 
-        GameManager.Instance.currentLevel += (count - 1);
-        GameManager.Instance.OnLevelCompleted();
+        GameManager.Instance.currentLevel += count;
+
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null)
+        {
+            player.ResetHealthAndShield();
+        }
     }
 
     private void ApplyModifierDirectly(LobbyOption option)
@@ -610,7 +649,7 @@ public class CheatMenu : MonoBehaviour
 
             if (GameManager.Instance != null && GameManager.Instance.ActiveModifiers != null)
             {
-                // Group weapon options by optionID / prefab name (matching GameManager.cs)
+                // Group weapon options by optionID / prefab name
                 var weaponGroups = GameManager.Instance.ActiveModifiers
                     .OfType<PlayerWeaponOption>()
                     .Where(w => w.weaponPrefab != null)

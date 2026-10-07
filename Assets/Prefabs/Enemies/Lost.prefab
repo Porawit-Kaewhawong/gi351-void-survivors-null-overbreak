@@ -151,7 +151,7 @@ MonoBehaviour:
   mapCenterPosition: {x: 0, y: 0, z: 0}
   mapSpawnRadius: 100
   groundYPosition: 0
-  groundYOffset: 0.2
+  groundYOffset: 0.4
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
