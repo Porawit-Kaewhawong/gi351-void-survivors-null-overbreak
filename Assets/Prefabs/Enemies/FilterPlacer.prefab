@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2701758901599929926}
   - component: {fileID: 4785149767257561248}
   - component: {fileID: 2006959838521965917}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27,8 +27,8 @@ Transform:
   m_GameObject: {fileID: 3111110702645711483}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.06, y: 0, z: 0}
+  m_LocalScale: {x: 2, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1471510481771561974}
@@ -120,8 +120,8 @@ GameObject:
   - component: {fileID: 236043786116152534}
   - component: {fileID: 4534309278539708237}
   - component: {fileID: -2484379455762081039}
-  m_Layer: 0
-  m_Name: FilterApplier
+  m_Layer: 7
+  m_Name: FilterPlacer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -177,12 +177,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FilterPlacerEnemy
   maxHealth: 25
-  moveSpeed: 2.5
+  moveSpeed: 2
   enableCatchUpSpeed: 1
   catchUpStartDistance: 8
   catchUpMaxDistance: 22
   maxCatchUpMultiplier: 3.5
-  enableDash: 1
+  enableDash: 0
   dashTriggerDistance: 6
   dashSpeedMultiplier: 2.5
   dashDuration: 0.35

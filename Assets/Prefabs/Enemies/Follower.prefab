@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8036977057318061374}
   - component: {fileID: 2958519273092270443}
   - component: {fileID: 2508665395188475123}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Follower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,12 +97,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFollower
   maxHealth: 30
-  moveSpeed: 3.5
+  moveSpeed: 3
   enableCatchUpSpeed: 1
   catchUpStartDistance: 8
   catchUpMaxDistance: 22
   maxCatchUpMultiplier: 3.5
-  enableDash: 1
+  enableDash: 0
   dashTriggerDistance: 6
   dashSpeedMultiplier: 2.5
   dashDuration: 0.35
@@ -112,7 +112,7 @@ MonoBehaviour:
   attackDistance: 1.25
   deathSound: {fileID: 8300000, guid: 3cd1ec097db20e642a1f3a802939cba3, type: 3}
   deathSoundVolume: 1
-  destroyOnFall: 1
+  destroyOnFall: 0
   fallDistance: 20
   damageTextPrefab: {fileID: 6583594957476428760, guid: aabe51c153dc2834e940521865c9a666, type: 3}
   acceleration: 12
@@ -158,7 +158,7 @@ GameObject:
   - component: {fileID: 3182759186670826250}
   - component: {fileID: 5361415548135111012}
   - component: {fileID: 8176715507521778588}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}

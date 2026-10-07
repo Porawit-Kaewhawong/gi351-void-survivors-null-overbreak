@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8143405923243730246}
   - component: {fileID: 8510674580393041121}
   - component: {fileID: 3730856338686339674}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: AbnormalChair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 6441239035913449903}
   - component: {fileID: 3393440890874921215}
   - component: {fileID: 8859095976334806734}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}

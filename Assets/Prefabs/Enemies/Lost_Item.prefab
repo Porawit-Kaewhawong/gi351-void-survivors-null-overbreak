@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6122340769911131101}
   - component: {fileID: 2591368483409193275}
   - component: {fileID: 885517726104740057}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 716528868376283633}
   - component: {fileID: 3703739660954809698}
   - component: {fileID: 7232732087622634610}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Lost_Item
   m_TagString: Untagged
   m_Icon: {fileID: 0}

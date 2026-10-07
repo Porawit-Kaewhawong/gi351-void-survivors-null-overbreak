@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2676873832494041212}
   - component: {fileID: 678759740308524278}
   - component: {fileID: 7608228524703564572}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 6065043238974449183}
   - component: {fileID: 4120892489693995013}
   - component: {fileID: 6262339750340044763}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Balloon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -179,12 +179,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBalloon
   maxHealth: 10
-  moveSpeed: 3
+  moveSpeed: 2.5
   enableCatchUpSpeed: 1
   catchUpStartDistance: 8
   catchUpMaxDistance: 22
   maxCatchUpMultiplier: 3.5
-  enableDash: 1
+  enableDash: 0
   dashTriggerDistance: 6
   dashSpeedMultiplier: 2.5
   dashDuration: 0.35

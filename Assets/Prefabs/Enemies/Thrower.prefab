@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8645967594407312901}
   - component: {fileID: 7829439396415331803}
   - component: {fileID: 8382876856590864153}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 5716664665884684227}
   - component: {fileID: 6614709933751414428}
   - component: {fileID: -254198127740258659}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Thrower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161,7 +161,7 @@ MonoBehaviour:
   catchUpStartDistance: 8
   catchUpMaxDistance: 22
   maxCatchUpMultiplier: 3.5
-  enableDash: 1
+  enableDash: 0
   dashTriggerDistance: 6
   dashSpeedMultiplier: 2.5
   dashDuration: 0.35

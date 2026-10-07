@@ -209,7 +209,15 @@ public class MapGenerator : MonoBehaviour
         }
 
         // Finalize player position and restore controls
-        TeleportPlayerToSpawn();
+        if (LevelRuleManager.Instance != null)
+        {
+            LevelRuleManager.Instance.ApplyActiveLevelRules();
+        }
+        else
+        {
+            TeleportPlayerToSpawn();
+        }
+
         SetPlayerMovementLock(false);
         IsGenerating = false;
     }
@@ -537,6 +545,71 @@ public class MapGenerator : MonoBehaviour
 
         if (cc != null) cc.enabled = wasCCEnabled;
         Physics.SyncTransforms();
+    }
+
+    /// <summary>
+    /// Gets a random valid generated chunk platform world position.
+    /// Optionally filters out chunks marked with MapChunk.isBlacklistedFromSpawn.
+    /// </summary>
+    public bool TryGetRandomPlatformPosition(out Vector3 platformPosition, bool excludeBlacklisted = true)
+    {
+        platformPosition = Vector3.zero;
+
+        if (activeChunks == null || activeChunks.Count == 0)
+        {
+            return false;
+        }
+
+        List<GameObject> candidateChunks = new List<GameObject>();
+
+        foreach (var chunk in activeChunks.Values)
+        {
+            if (chunk == null) continue;
+
+            if (excludeBlacklisted)
+            {
+                MapChunk mapChunk = chunk.GetComponent<MapChunk>();
+                if (mapChunk != null && mapChunk.isBlacklistedFromSpawn)
+                {
+                    continue; // Skip blacklisted chunk
+                }
+            }
+
+            candidateChunks.Add(chunk);
+        }
+
+        // Fallback: If all chunks happen to be blacklisted, allow any active chunk
+        if (candidateChunks.Count == 0)
+        {
+            foreach (var chunk in activeChunks.Values)
+            {
+                if (chunk != null) candidateChunks.Add(chunk);
+            }
+        }
+
+        if (candidateChunks.Count == 0) return false;
+
+        GameObject selectedChunk = candidateChunks[Random.Range(0, candidateChunks.Count)];
+
+        // Check if selected chunk has custom spawn points defined
+        MapChunk selectedMapChunk = selectedChunk.GetComponent<MapChunk>();
+        if (selectedMapChunk != null && selectedMapChunk.customSpawnPoints != null && selectedMapChunk.customSpawnPoints.Length > 0)
+        {
+            List<Transform> validPoints = new List<Transform>();
+            foreach (var pt in selectedMapChunk.customSpawnPoints)
+            {
+                if (pt != null) validPoints.Add(pt);
+            }
+
+            if (validPoints.Count > 0)
+            {
+                platformPosition = validPoints[Random.Range(0, validPoints.Count)].position;
+                return true;
+            }
+        }
+
+        platformPosition = selectedChunk.transform.position;
+        return true;
     }
 
     // --- ALGORITHMIC GENERATION STAGES ---

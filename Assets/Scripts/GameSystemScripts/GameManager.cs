@@ -142,6 +142,9 @@ public class GameManager : MonoBehaviour
     public float fullClearShakeDuration = 0.35f;
 
     private Coroutine collapseFlashCoroutine;
+    private Coroutine activeCameraShakeCoroutine;
+    private Vector3 cameraShakeOriginalPos;
+    private bool isShakingCamera = false;
 
     [Header("Dynamic Atmosphere Settings")]
     [SerializeField] private bool enableDynamicCollapseFog = true;
@@ -318,9 +321,13 @@ public class GameManager : MonoBehaviour
     private bool isProcessingSelection = false;
     private int currentLobbyPhase = 0;
 
+    // Sequential selection category state
+    private LobbySelectionType currentSelectionType;
+
     private GameObject activeFinishPortal;
     private GameObject activeStartPortal;
     private Coroutine activeSpawnCoroutine;
+    private readonly List<Coroutine> activeTelegraphCoroutines = new List<Coroutine>();
     private AudioSource musicAudioSource;
 
     // UI Animation cached values
@@ -328,7 +335,7 @@ public class GameManager : MonoBehaviour
     private Color defaultCounterColor = Color.white;
     private Coroutine counterAnimationCoroutine;
 
-    // Cache Player & Weapon references to prevent GC garbage spikes
+    // Cache Player & Weapon references
     private Transform cachedPlayerTransform;
     private PlayerController cachedPlayerController;
     private readonly List<GameObject> activeWeapons = new List<GameObject>();
@@ -348,7 +355,6 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
-        // Setup dedicated music audio source
         musicAudioSource = GetComponent<AudioSource>();
         if (musicAudioSource == null)
         {
@@ -357,7 +363,6 @@ public class GameManager : MonoBehaviour
         musicAudioSource.loop = true;
         musicAudioSource.playOnAwake = false;
 
-        // Cache original UI text properties for animation reset
         if (itemCounterText != null)
         {
             defaultCounterScale = itemCounterText.transform.localScale;
@@ -373,30 +378,22 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // Continuously evaluate BGM pitch/speed based on collapse state
         UpdateCollapseBGM();
-
-        // Dynamically shift atmosphere and fog during panic mode
         UpdateAtmosphere();
 
-        // Collapse Meter & Survival Coin Loop
         if (ExitUnlocked && !isFinished)
         {
-            // Advance collapse meter
             CollapseMeter += collapseMeterBuildRate * Time.deltaTime;
 
-            // Accumulate survival time and permanent coins
             PostExitSurvivalTime += Time.deltaTime;
             PermanentCoinsEarned += coinsPerSecondPostExit * Time.deltaTime;
 
-            // Trigger events for decoupled observers
             OnCollapseMeterChanged?.Invoke(CollapseMeter, CollapseLevel);
             OnCoinsEarnedChanged?.Invoke(PermanentCoinsEarned);
 
-            // Check for 100% Collapse Overload (Repeatable Loop)
             if (CollapseMeter >= 100f)
             {
-                CollapseMeter -= 100f; // Reset meter back to 0% (retaining overflow)
+                CollapseMeter -= 100f;
                 CollapseLevel++;
                 OnCollapseLevelUpEvent?.Invoke(CollapseLevel);
                 OnCollapseTriggered();
@@ -441,14 +438,14 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogWarning($"[GameManager] Collapse level reached LVL {CollapseLevel}! Refreshing enemy stats on field.");
 
-        // Trigger visual juice
         FlashCollapseText();
-        TriggerCameraShake(0.2f, 0.2f); // Quick warning rumble
+        TriggerCameraShake(0.2f, 0.2f);
 
-        // Instantly apply the new stat scaling to all currently active enemies on screen
+        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
+
         foreach (GameObject enemyObj in activeEnemies)
         {
-            if (enemyObj != null && enemyObj.TryGetComponent<EnemyBase>(out var enemyScript))
+            if (enemyObj != null && enemyObj.activeInHierarchy && enemyObj.TryGetComponent<EnemyBase>(out var enemyScript))
             {
                 enemyScript.ApplyEnemyBuffs();
             }
@@ -506,7 +503,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Apply compounding collapse stack multipliers
         if (CollapseLevel > 0)
         {
             if (stat == EnemyStatType.Health)
@@ -625,7 +621,6 @@ public class GameManager : MonoBehaviour
         AnimateItemCounter();
         OnItemCountChanged?.Invoke(CollectedItems, TotalItems);
 
-        // Check Exit Unlock Threshold (default 50%)
         int requiredItemsForExit = Mathf.Max(1, Mathf.CeilToInt(TotalItems * exitUnlockPercentage));
         if (!ExitUnlocked && CollectedItems >= requiredItemsForExit)
         {
@@ -634,14 +629,12 @@ public class GameManager : MonoBehaviour
             TriggerFinishPortal();
         }
 
-        // Post-Exit Coolant Mechanism
         if (ExitUnlocked)
         {
             CollapseMeter = Mathf.Clamp(CollapseMeter - itemCoolantAmount, 0f, 100f);
             OnCollapseMeterChanged?.Invoke(CollapseMeter, CollapseLevel);
         }
 
-        // 100% Full Map Clear Climax
         if (TotalItems > 0 && CollectedItems >= TotalItems && !hasTriggeredFullClear)
         {
             OnFullClearTriggeredEvent?.Invoke();
@@ -693,7 +686,6 @@ public class GameManager : MonoBehaviour
         Vector3 targetScale = defaultCounterScale * counterPunchScale;
         float elapsed = 0f;
 
-        // Phase 1: Scale up and transition to Flash Color
         while (elapsed < halfDuration)
         {
             elapsed += Time.deltaTime;
@@ -706,7 +698,6 @@ public class GameManager : MonoBehaviour
 
         elapsed = 0f;
 
-        // Phase 2: Scale back down and revert to Original Color
         while (elapsed < halfDuration)
         {
             elapsed += Time.deltaTime;
@@ -717,7 +708,6 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        // Snap back to exact base parameters
         itemCounterText.transform.localScale = defaultCounterScale;
         itemCounterText.color = defaultCounterColor;
         counterAnimationCoroutine = null;
@@ -727,14 +717,12 @@ public class GameManager : MonoBehaviour
     {
         PlayLevelCompleteSound();
 
-        // Start flickering transition for skybox and BGM
         if (skyboxFlickerCoroutine != null)
         {
             StopCoroutine(skyboxFlickerCoroutine);
         }
         skyboxFlickerCoroutine = StartCoroutine(FlickerSkyboxAndMusicRoutine());
 
-        // Spawn Finish Portal
         if (finishPortalPrefab != null && MapGenerator.Instance != null && activeFinishPortal == null)
         {
             Vector3 spawnPosition = MapGenerator.Instance.StartChunkWorldPosition + finishOffsetAboveStart;
@@ -745,22 +733,18 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlickerSkyboxAndMusicRoutine()
     {
-        // 1. Alternate skyboxes rapidly if both materials are set
         if (defaultSkybox != null && postExitSkybox != null)
         {
             for (int i = 0; i < skyboxFlickerCount; i++)
             {
-                // Alternate skybox material (Even = post-exit; Odd = default)
                 RenderSettings.skybox = (i % 2 == 0) ? postExitSkybox : defaultSkybox;
                 DynamicGI.UpdateEnvironment();
 
-                // Play audio stutter on each flicker
                 PlayGlitchSFX();
 
                 yield return new WaitForSeconds(skyboxFlickerInterval);
             }
 
-            // Lock in postExitSkybox permanently
             RenderSettings.skybox = postExitSkybox;
             DynamicGI.UpdateEnvironment();
         }
@@ -770,7 +754,6 @@ public class GameManager : MonoBehaviour
             DynamicGI.UpdateEnvironment();
         }
 
-        // 2. Switch to post-exit BGM after flickering settles
         if (postExitMusicList != null && postExitMusicList.Length > 0)
         {
             AudioClip selectedBGM = postExitMusicList[Random.Range(0, postExitMusicList.Length)];
@@ -806,17 +789,14 @@ public class GameManager : MonoBehaviour
         hasTriggeredFullClear = true;
         Debug.Log("[GameManager] 100% Full Clear achieved! Clearing all active enemies.");
 
-        // Trigger full clear camera shake
         TriggerCameraShake(fullClearShakeDuration, fullClearShakeMagnitude);
 
-        // Spawn expanding shockwave FX on player position
         Transform playerT = GetPlayerTransform();
         if (fullClearShockwavePrefab != null && playerT != null)
         {
             Instantiate(fullClearShockwavePrefab, playerT.position, Quaternion.identity);
         }
 
-        // Play full clear pulse sound
         if (fullClearSound != null)
         {
             AudioSource.PlayClipAtPoint(
@@ -826,7 +806,6 @@ public class GameManager : MonoBehaviour
             );
         }
 
-        // Destroy/wipe all current enemies on screen as a reward
         ClearEnemies();
     }
 
@@ -858,13 +837,11 @@ public class GameManager : MonoBehaviour
 
     public void OpenLobbyForCurrentLevel()
     {
-        // Reset skybox back to default
         if (defaultSkybox != null)
         {
             RenderSettings.skybox = defaultSkybox;
         }
 
-        // Hide item counter and collapse elements in lobby
         if (itemCounterText != null) itemCounterText.gameObject.SetActive(false);
         if (collapseMeterText != null) collapseMeterText.gameObject.SetActive(false);
         if (coinsText != null) coinsText.gameObject.SetActive(false);
@@ -874,17 +851,23 @@ public class GameManager : MonoBehaviour
         ExitUnlocked = false;
         CollapseLevel = 0;
 
+        if (LevelIndicator.Instance != null)
+        {
+            LevelIndicator.Instance.DisplayText($"LOBBY - LEVEL {currentLevel}");
+        }
+
         PlayMusic(lobbyMusic);
+
         StopSpawningEnemies();
+        ClearEnemies();
         ClearLobbyObjects();
 
-        LobbySelectionType currentType = GetSelectionTypeForLevel(currentLevel);
-        Spawn3DSelectionOptions(currentType);
+        currentSelectionType = GetSelectionTypeForLevel(currentLevel);
+        Spawn3DSelectionOptions(currentSelectionType);
     }
 
     private void Spawn3DSelectionOptions(LobbySelectionType type)
     {
-        // Update 3D World Space Text indicator
         UpdateLobbyPhaseWorldText(type);
 
         List<LobbyOption> optionsPool = FetchOptionPoolForType(type);
@@ -965,7 +948,6 @@ public class GameManager : MonoBehaviour
 
         if (chosenOption != null)
         {
-            // Level Rules CANNOT stack. Prevent duplicates.
             if (type == LobbySelectionType.LevelRule)
             {
                 bool ruleAlreadyActive = ActiveModifiers.Exists(m =>
@@ -987,14 +969,13 @@ public class GameManager : MonoBehaviour
 
         ClearLobbyObjects();
 
-        // Check if player needs to make further selections (3 rounds total: 0, 1, 2)
         if (currentLobbyPhase < 2)
         {
             currentLobbyPhase++;
             isProcessingSelection = false;
 
-            LobbySelectionType randomSecondaryType = GetRandomNonRuleSelectionType();
-            Spawn3DSelectionOptions(randomSecondaryType);
+            LobbySelectionType nextType = GetNextSelectionType();
+            Spawn3DSelectionOptions(nextType);
         }
         else
         {
@@ -1002,28 +983,35 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private LobbySelectionType GetRandomNonRuleSelectionType()
+    private LobbySelectionType GetNextSelectionType()
     {
-        List<LobbySelectionType> availableTypes = new List<LobbySelectionType>();
+        int totalCategories = 4; // Cycles through PlayerWeapon, EnemySelection, PlayerBuff, EnemyBuff
+        int nextIndex = ((int)currentSelectionType + 1) % totalCategories;
 
-        if (playerWeaponOptions != null && playerWeaponOptions.Count > 0)
-            availableTypes.Add(LobbySelectionType.PlayerWeapon);
-
-        if (enemySelectionOptions != null && enemySelectionOptions.Count > 0)
-            availableTypes.Add(LobbySelectionType.EnemySelection);
-
-        if (playerBuffOptions != null && playerBuffOptions.Count > 0)
-            availableTypes.Add(LobbySelectionType.PlayerBuff);
-
-        if (enemyBuffOptions != null && enemyBuffOptions.Count > 0)
-            availableTypes.Add(LobbySelectionType.EnemyBuff);
-
-        if (availableTypes.Count == 0)
+        for (int i = 0; i < totalCategories; i++)
         {
-            return LobbySelectionType.PlayerBuff;
+            LobbySelectionType candidate = (LobbySelectionType)((nextIndex + i) % totalCategories);
+            if (HasAvailableOptions(candidate))
+            {
+                currentSelectionType = candidate;
+                return candidate;
+            }
         }
 
-        return availableTypes[Random.Range(0, availableTypes.Count)];
+        return currentSelectionType;
+    }
+
+    private bool HasAvailableOptions(LobbySelectionType type)
+    {
+        switch (type)
+        {
+            case LobbySelectionType.PlayerWeapon: return playerWeaponOptions != null && playerWeaponOptions.Count > 0;
+            case LobbySelectionType.EnemySelection: return enemySelectionOptions != null && enemySelectionOptions.Count > 0;
+            case LobbySelectionType.PlayerBuff: return playerBuffOptions != null && playerBuffOptions.Count > 0;
+            case LobbySelectionType.EnemyBuff: return enemyBuffOptions != null && enemyBuffOptions.Count > 0;
+            case LobbySelectionType.LevelRule: return levelRuleOptions != null && levelRuleOptions.Count > 0;
+            default: return false;
+        }
     }
 
     private void PlaySelectionSound()
@@ -1050,14 +1038,12 @@ public class GameManager : MonoBehaviour
             weaponContainer = containerObj.transform;
         }
 
-        // Explicitly destroy tracked weapons from list instead of relying purely on frame-end child destroys
         foreach (var weapon in activeWeapons)
         {
             if (weapon != null) Destroy(weapon);
         }
         activeWeapons.Clear();
 
-        // Group player weapon selections by optionID or prefab name
         var weaponGroups = ActiveModifiers
             .OfType<PlayerWeaponOption>()
             .Where(w => w.weaponPrefab != null)
@@ -1066,13 +1052,11 @@ public class GameManager : MonoBehaviour
         foreach (var group in weaponGroups)
         {
             PlayerWeaponOption sampleWeaponOption = group.First();
-            int weaponLevel = group.Count(); // Level = total times this weapon was picked
+            int weaponLevel = group.Count();
 
-            // Instantiate ONLY 1 instance per weapon type
             GameObject weaponObj = Instantiate(sampleWeaponOption.weaponPrefab, weaponContainer);
             activeWeapons.Add(weaponObj);
 
-            // Apply weapon level & upgraded stats
             if (weaponObj.TryGetComponent<BaseWeapon>(out var weaponScript))
             {
                 weaponScript.SetWeaponLevel(weaponLevel);
@@ -1088,11 +1072,18 @@ public class GameManager : MonoBehaviour
 
         while (true)
         {
+            Transform playerT = GetPlayerTransform();
+            if (isFinished || playerT == null)
+            {
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+
             float spawnTimeTaken = 0f;
-            activeEnemies.RemoveAll(e => e == null);
+
+            activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
 
             Vector3 currentSpawnOrigin = Vector3.zero;
-            Transform playerT = GetPlayerTransform();
 
             if (playerT != null)
                 currentSpawnOrigin = playerT.position;
@@ -1114,8 +1105,9 @@ public class GameManager : MonoBehaviour
                 if (sampleOption.isSingleInstance)
                 {
                     int stackCount = group.Count();
+
                     GameObject existingEnemy = activeEnemies.Find(e =>
-                        e != null && e.name.StartsWith(sampleOption.levelSpawnPrefab.name));
+                        e != null && e.activeInHierarchy && e.name.StartsWith(sampleOption.levelSpawnPrefab.name));
 
                     if (existingEnemy == null && activeEnemies.Count < maxActiveEnemies)
                     {
@@ -1130,31 +1122,44 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // PASS 2: MULTI-INSTANCE SPAWNING
+            // PASS 2: MULTI-INSTANCE SPAWNING (RANDOM POOL DISTRIBUTION)
             var multiInstanceGroups = enemyGroups
                 .Where(g => !g.First().isSingleInstance)
                 .Select(g => new
                 {
                     Prefab = g.First().levelSpawnPrefab,
-                    TotalToSpawn = (g.First().enemyCount + extraEnemyBuff) * g.Count()
+                    BaseCount = g.First().enemyCount * g.Count()
                 })
                 .ToList();
 
             if (multiInstanceGroups.Count > 0)
             {
-                int maxSpawnsInAnyGroup = multiInstanceGroups.Max(g => g.TotalToSpawn);
+                // 1. Initialize spawn targets with base enemy counts
+                int[] spawnCounts = multiInstanceGroups.Select(g => g.BaseCount).ToArray();
 
+                // 2. Distribute each extra enemy point randomly to one of the active groups
+                for (int i = 0; i < extraEnemyBuff; i++)
+                {
+                    int randomIndex = Random.Range(0, multiInstanceGroups.Count);
+                    spawnCounts[randomIndex]++;
+                }
+
+                int maxSpawnsInAnyGroup = spawnCounts.Length > 0 ? spawnCounts.Max() : 0;
+
+                // 3. Spawn staggered wave based on allocated targets
                 for (int step = 0; step < maxSpawnsInAnyGroup; step++)
                 {
+                    activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
                     if (activeEnemies.Count >= maxActiveEnemies) break;
 
-                    foreach (var groupInfo in multiInstanceGroups)
+                    for (int gIndex = 0; gIndex < multiInstanceGroups.Count; gIndex++)
                     {
+                        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
                         if (activeEnemies.Count >= maxActiveEnemies) break;
 
-                        if (step < groupInfo.TotalToSpawn)
+                        if (step < spawnCounts[gIndex])
                         {
-                            SpawnSingleEnemy(groupInfo.Prefab, currentSpawnOrigin, 1);
+                            SpawnSingleEnemy(multiInstanceGroups[gIndex].Prefab, currentSpawnOrigin, 1);
                             yield return new WaitForSeconds(enemySpawnStaggerDelay);
                             spawnTimeTaken += enemySpawnStaggerDelay;
                         }
@@ -1162,7 +1167,6 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // Subtract the time spent staggering from the wave interval
             float remainingWait = Mathf.Max(0.5f, interval - spawnTimeTaken);
             yield return new WaitForSeconds(remainingWait);
         }
@@ -1178,12 +1182,12 @@ public class GameManager : MonoBehaviour
             spawnPos = spawnOrigin + new Vector3(safeOffset.x, 0.5f, safeOffset.y);
         }
 
-        StartCoroutine(SpawnEnemyWithTelegraphRoutine(prefab, spawnPos, stackCount));
+        Coroutine telegraphCoroutine = StartCoroutine(SpawnEnemyWithTelegraphRoutine(prefab, spawnPos, stackCount));
+        activeTelegraphCoroutines.Add(telegraphCoroutine);
     }
 
     private IEnumerator SpawnEnemyWithTelegraphRoutine(GameObject enemyPrefab, Vector3 spawnPos, int stackCount)
     {
-        // 1. Spawn Telegraph Indicator
         GameObject indicator = null;
         if (spawnTelegraphPrefab != null)
         {
@@ -1197,17 +1201,18 @@ public class GameManager : MonoBehaviour
 
         if (indicator != null) Destroy(indicator);
 
-        // 2. Instantiate or Pool Enemy
-        GameObject spawnedEnemy = (SimpleEnemyPool.Instance != null)
-            ? SimpleEnemyPool.Instance.GetEnemy(enemyPrefab, spawnPos, Quaternion.identity)
-            : Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+        GameObject spawnedEnemy = GetEnemyFromPool(enemyPrefab, spawnPos, Quaternion.identity);
 
         if (spawnedEnemy != null)
         {
+            spawnedEnemy.transform.SetPositionAndRotation(spawnPos, Quaternion.identity);
+            spawnedEnemy.SetActive(true);
             RegisterEnemy(spawnedEnemy);
+
             if (spawnedEnemy.TryGetComponent<EnemyBase>(out var enemyScript))
             {
                 enemyScript.SetStackCount(stackCount);
+                enemyScript.ApplyEnemyBuffs();
             }
         }
     }
@@ -1219,6 +1224,12 @@ public class GameManager : MonoBehaviour
             StopCoroutine(activeSpawnCoroutine);
             activeSpawnCoroutine = null;
         }
+
+        foreach (var c in activeTelegraphCoroutines)
+        {
+            if (c != null) StopCoroutine(c);
+        }
+        activeTelegraphCoroutines.Clear();
     }
 
     private bool TryGetValidPlatformPosition(Vector3 origin, out Vector3 validPosition)
@@ -1239,12 +1250,9 @@ public class GameManager : MonoBehaviour
                 if (!hit.collider.isTrigger)
                 {
                     validPosition = hit.point + Vector3.up * 0.5f;
-                    Debug.DrawRay(rayStartPoint, Vector3.down * hit.distance, Color.green, 2f);
                     return true;
                 }
             }
-
-            Debug.DrawRay(rayStartPoint, Vector3.down * maxRaycastDistance, Color.red, 1f);
         }
 
         validPosition = Vector3.zero;
@@ -1253,6 +1261,9 @@ public class GameManager : MonoBehaviour
 
     public void StartSelectedLevel()
     {
+        StopSpawningEnemies();
+        ClearEnemies();
+
         if (defaultSkybox != null)
         {
             RenderSettings.skybox = defaultSkybox;
@@ -1268,6 +1279,11 @@ public class GameManager : MonoBehaviour
         if (itemCounterText != null)
         {
             itemCounterText.gameObject.SetActive(true);
+        }
+
+        if (LevelIndicator.Instance != null)
+        {
+            LevelIndicator.Instance.DisplayText($"LEVEL {currentLevel}");
         }
 
         isProcessingSelection = false;
@@ -1296,13 +1312,17 @@ public class GameManager : MonoBehaviour
             LevelRuleManager.Instance.ApplyActiveLevelRules();
         }
 
-        StopSpawningEnemies();
         activeSpawnCoroutine = StartCoroutine(ContinuousSpawnEnemiesRoutine(enemySpawnInterval));
     }
 
     public void OnLevelCompleted()
     {
         StopSpawningEnemies();
+
+        if (LevelIndicator.Instance != null)
+        {
+            LevelIndicator.Instance.DisplayText("LEVEL COMPLETE!");
+        }
 
         if (LevelRuleManager.Instance != null && LevelRuleManager.Instance.CheckShouldRepeatLevelForRound2())
         {
@@ -1356,7 +1376,8 @@ public class GameManager : MonoBehaviour
 
     public void RegisterEnemy(GameObject enemy)
     {
-        if (enemy != null && !activeEnemies.Contains(enemy))
+        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
+        if (enemy != null && enemy.activeInHierarchy && !activeEnemies.Contains(enemy))
         {
             activeEnemies.Add(enemy);
         }
@@ -1364,19 +1385,87 @@ public class GameManager : MonoBehaviour
 
     public void UnregisterEnemy(GameObject enemy)
     {
-        if (enemy != null && activeEnemies.Contains(enemy))
+        if (enemy != null)
         {
             activeEnemies.Remove(enemy);
         }
+        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
     }
 
     private void ClearEnemies()
     {
-        foreach (var enemy in activeEnemies)
-        {
-            if (enemy != null) Destroy(enemy);
-        }
+        StopSpawningEnemies();
+
+        activeEnemies.RemoveAll(e => e == null);
+        var enemiesToClear = activeEnemies.ToArray();
         activeEnemies.Clear();
+
+        foreach (var enemy in enemiesToClear)
+        {
+            if (enemy != null)
+            {
+                DespawnEnemyToPool(enemy);
+            }
+        }
+
+        EnemyBase[] remainingEnemies = FindObjectsByType<EnemyBase>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (var enemyScript in remainingEnemies)
+        {
+            if (enemyScript != null && enemyScript.gameObject != null && enemyScript.gameObject.activeInHierarchy)
+            {
+                DespawnEnemyToPool(enemyScript.gameObject);
+            }
+        }
+    }
+
+    private GameObject GetEnemyFromPool(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        if (prefab == null) return null;
+
+        if (SimpleEnemyPool.Instance != null)
+        {
+            var poolType = SimpleEnemyPool.Instance.GetType();
+
+            var getEnemyMethod = poolType.GetMethod("GetEnemy", new[] { typeof(GameObject), typeof(Vector3), typeof(Quaternion) });
+            if (getEnemyMethod != null)
+            {
+                return (GameObject)getEnemyMethod.Invoke(SimpleEnemyPool.Instance, new object[] { prefab, position, rotation });
+            }
+
+            var spawnMethod = poolType.GetMethod("Spawn", new[] { typeof(GameObject), typeof(Vector3), typeof(Quaternion) });
+            if (spawnMethod != null)
+            {
+                return (GameObject)spawnMethod.Invoke(SimpleEnemyPool.Instance, new object[] { prefab, position, rotation });
+            }
+        }
+
+        return Instantiate(prefab, position, rotation);
+    }
+
+    private void DespawnEnemyToPool(GameObject enemy)
+    {
+        if (enemy == null) return;
+
+        if (SimpleEnemyPool.Instance != null)
+        {
+            var poolType = SimpleEnemyPool.Instance.GetType();
+
+            var returnEnemyMethod = poolType.GetMethod("ReturnEnemy", new[] { typeof(GameObject) });
+            if (returnEnemyMethod != null)
+            {
+                returnEnemyMethod.Invoke(SimpleEnemyPool.Instance, new object[] { enemy });
+                return;
+            }
+
+            var despawnMethod = poolType.GetMethod("Despawn", new[] { typeof(GameObject) });
+            if (despawnMethod != null)
+            {
+                despawnMethod.Invoke(SimpleEnemyPool.Instance, new object[] { enemy });
+                return;
+            }
+        }
+
+        Destroy(enemy);
     }
 
     private void TeleportPlayerToLobby()
@@ -1387,13 +1476,20 @@ public class GameManager : MonoBehaviour
 
         if (playerTransform != null)
         {
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
+            if (playerTransform.TryGetComponent<PlayerController>(out var player))
+            {
+                player.Teleport(lobbySpawnPoint.position, lobbySpawnPoint.rotation);
+            }
+            else
+            {
+                CharacterController cc = playerTransform.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
 
-            playerTransform.SetPositionAndRotation(lobbySpawnPoint.position, lobbySpawnPoint.rotation);
+                playerTransform.SetPositionAndRotation(lobbySpawnPoint.position, lobbySpawnPoint.rotation);
 
-            if (cc != null) cc.enabled = true;
-            Physics.SyncTransforms();
+                if (cc != null) cc.enabled = true;
+                Physics.SyncTransforms();
+            }
         }
     }
 
@@ -1427,11 +1523,11 @@ public class GameManager : MonoBehaviour
                 break;
 
             case LobbySelectionType.PlayerBuff:
-                AddTieredBuffsToPool(playerBuffOptions, sourcePool);
+                AddTieredBuffsToPool(playerBuffOptions, sourcePool, allowInfiniteStacking: true);
                 break;
 
             case LobbySelectionType.EnemyBuff:
-                AddTieredBuffsToPool(enemyBuffOptions, sourcePool);
+                AddTieredBuffsToPool(enemyBuffOptions, sourcePool, allowInfiniteStacking: true);
                 break;
 
             case LobbySelectionType.LevelRule:
@@ -1468,7 +1564,7 @@ public class GameManager : MonoBehaviour
         return selectedChoices;
     }
 
-    private void AddTieredBuffsToPool<T>(List<T> buffOptions, List<LobbyOption> targetPool) where T : LobbyOption
+    private void AddTieredBuffsToPool<T>(List<T> buffOptions, List<LobbyOption> targetPool, bool allowInfiniteStacking = true) where T : LobbyOption
     {
         var buffGroups = buffOptions.GroupBy(b => !string.IsNullOrEmpty(b.optionID) ? b.optionID : b.title);
 
@@ -1483,10 +1579,13 @@ public class GameManager : MonoBehaviour
                 (!string.IsNullOrEmpty(m.optionID) ? m.optionID == groupKey : m.title == groupKey)
             );
 
-            // Cap at max tier: if acquiredCount reaches max available tiers, exclude from pool
             if (acquiredCount < sortedBuffs.Count)
             {
                 targetPool.Add(sortedBuffs[acquiredCount]);
+            }
+            else if (allowInfiniteStacking)
+            {
+                targetPool.Add(sortedBuffs[sortedBuffs.Count - 1]);
             }
         }
     }
@@ -1515,29 +1614,48 @@ public class GameManager : MonoBehaviour
 
     public void TriggerCameraShake(float duration, float magnitude)
     {
-        if (Camera.main != null)
+        if (Camera.main == null) return;
+
+        if (activeCameraShakeCoroutine != null)
         {
-            StartCoroutine(CameraShakeRoutine(duration, magnitude));
+            StopCoroutine(activeCameraShakeCoroutine);
+            if (isShakingCamera && Camera.main != null)
+            {
+                Camera.main.transform.localPosition = cameraShakeOriginalPos;
+            }
         }
+
+        activeCameraShakeCoroutine = StartCoroutine(CameraShakeRoutine(duration, magnitude));
     }
 
     private IEnumerator CameraShakeRoutine(float duration, float magnitude)
     {
+        if (Camera.main == null) yield break;
+
         Transform camTransform = Camera.main.transform;
-        Vector3 originalPos = camTransform.localPosition;
+        cameraShakeOriginalPos = camTransform.localPosition;
+        isShakingCamera = true;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
+            if (camTransform == null) yield break;
+
             float x = Random.Range(-1f, 1f) * magnitude;
             float y = Random.Range(-1f, 1f) * magnitude;
 
-            camTransform.localPosition = originalPos + new Vector3(x, y, 0f);
+            camTransform.localPosition = cameraShakeOriginalPos + new Vector3(x, y, 0f);
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        camTransform.localPosition = originalPos;
+        if (camTransform != null)
+        {
+            camTransform.localPosition = cameraShakeOriginalPos;
+        }
+
+        isShakingCamera = false;
+        activeCameraShakeCoroutine = null;
     }
 
     // --- COLLAPSE UI POP ANIMATION ---

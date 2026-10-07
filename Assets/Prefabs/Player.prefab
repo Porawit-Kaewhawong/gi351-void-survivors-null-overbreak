@@ -338,10 +338,21 @@ MonoBehaviour:
   baseMoveSpeed: 5
   baseJumpHeight: 2
   gravity: -20
-  killYThreshold: -20
+  killYThreshold: -50
   basePickupRadius: 2
   baseMaxHealth: 5
-  baseMaxShield: 0
+  baseMaxShield: 2
+  iFrameDuration: 0.5
+  flashSpriteDuringIFrames: 1
+  iFrameBlinkInterval: 0.08
+  minShieldRechargeInterval: 10
+  maxShieldRechargeInterval: 15
+  shieldRechargeAmount: 0
+  customShieldSprite: {fileID: 0}
+  shieldColor: {r: 0, g: 0.7, b: 1, a: 0.5}
+  shieldOffset: {x: 0, y: 0, z: 0}
+  shieldSize: 2.5
+  pulseSpeed: 3
   groundCheckRadius: 0.3
   groundCheckOffset: 0.05
   groundLayer:

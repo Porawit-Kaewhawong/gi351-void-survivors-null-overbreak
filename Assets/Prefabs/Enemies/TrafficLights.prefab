@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5258416754557929549}
   - component: {fileID: 4939343110633386132}
   - component: {fileID: -8778951421000050208}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TrafficLights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -107,6 +107,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StopSignEnemy
   maxHealth: 25
   moveSpeed: 3.5
+  enableCatchUpSpeed: 1
+  catchUpStartDistance: 8
+  catchUpMaxDistance: 22
+  maxCatchUpMultiplier: 1.8
+  enableDash: 0
+  dashTriggerDistance: 6
+  dashSpeedMultiplier: 2.5
+  dashDuration: 0.35
+  dashCooldown: 4
   attackDamage: 1
   attackRate: 1
   attackDistance: 1.2

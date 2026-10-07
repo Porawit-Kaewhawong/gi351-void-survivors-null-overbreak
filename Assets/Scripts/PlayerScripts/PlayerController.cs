@@ -267,10 +267,11 @@ public class PlayerController : MonoBehaviour
         CheckFallDeath();
         CheckGround();
 
-        Vector3 moveInput = HandleMovement();
-
-        HandleJump();
         ApplyGravity();
+        HandleJump();
+
+        Vector3 moveInput = HandleMovementAndGravity();
+
         HandleShieldRecharge();
         UpdateShieldVisual();
         HandleSpriteAnimation(moveInput);
@@ -289,6 +290,34 @@ public class PlayerController : MonoBehaviour
         {
             shieldSpriteObj.transform.rotation = Quaternion.LookRotation(shieldSpriteObj.transform.position - cameraTransform.position);
         }
+    }
+
+    // --- SAFE TELEPORTATION ---
+
+    public void Teleport(Vector3 targetPosition, Quaternion targetRotation)
+    {
+        if (characterController == null)
+            characterController = GetComponent<CharacterController>();
+
+        if (characterController != null)
+        {
+            characterController.enabled = false;
+        }
+
+        transform.SetPositionAndRotation(targetPosition, targetRotation);
+        velocity = Vector3.zero;
+
+        if (characterController != null)
+        {
+            characterController.enabled = true;
+        }
+
+        Physics.SyncTransforms();
+    }
+
+    public void Teleport(Vector3 targetPosition)
+    {
+        Teleport(targetPosition, transform.rotation);
     }
 
     // --- IMMUNITY FRAME HANDLING ---
@@ -693,6 +722,8 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGround()
     {
+        if (characterController == null || !characterController.enabled) return;
+
         float bottom = characterController.bounds.min.y;
 
         Vector3 checkPosition = new Vector3(
@@ -719,8 +750,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private Vector3 HandleMovement()
+    private Vector3 HandleMovementAndGravity()
     {
+        if (characterController == null || !characterController.enabled) return Vector3.zero;
+
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
@@ -738,7 +771,9 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDirection = cameraForward * vertical + cameraRight * horizontal;
         moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
 
-        characterController.Move(moveDirection * CurrentMoveSpeed * Time.deltaTime);
+        // Combine horizontal movement and vertical velocity into a single Move call
+        Vector3 combinedMotion = (moveDirection * CurrentMoveSpeed) + velocity;
+        characterController.Move(combinedMotion * Time.deltaTime);
 
         return rawInput;
     }
@@ -767,8 +802,10 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyGravity()
     {
-        velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
+        if (!isGrounded)
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
     }
 
     // --- 8-WAY SPRITE ANIMATION CONTROLLER ---
