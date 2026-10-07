@@ -153,8 +153,6 @@ public class PlayerController : MonoBehaviour
     private int currentFrameIndex = 0;
     private SpriteFlash spriteFlasher;
 
-    // --- STAT CALCULATIONS ---
-
     public float CurrentMoveSpeed
     {
         get
@@ -292,8 +290,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- SAFE TELEPORTATION ---
-
     public void Teleport(Vector3 targetPosition, Quaternion targetRotation)
     {
         if (characterController == null)
@@ -320,15 +316,12 @@ public class PlayerController : MonoBehaviour
         Teleport(targetPosition, transform.rotation);
     }
 
-    // --- IMMUNITY FRAME HANDLING ---
-
     private void HandleIFrames()
     {
         if (iFrameTimer > 0f)
         {
             iFrameTimer -= Time.deltaTime;
 
-            // Visual flicker effect during immunity
             if (flashSpriteDuringIFrames && spriteRenderer != null)
             {
                 float alpha = (Mathf.FloorToInt(Time.time / iFrameBlinkInterval) % 2 == 0) ? 0.3f : 1f;
@@ -353,8 +346,6 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = c;
         }
     }
-
-    // --- TRANSPARENT SPRITE CIRCLE SHIELD GENERATOR & CONTROLLER ---
 
     private void GenerateSpriteShield()
     {
@@ -452,8 +443,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- SHIELD RECHARGE AUTOMATION ---
-
     private void ResetShieldRechargeTimer()
     {
         float baseInterval = Random.Range(minShieldRechargeInterval, maxShieldRechargeInterval);
@@ -482,10 +471,7 @@ public class PlayerController : MonoBehaviour
         CurrentShield = Mathf.Min(CurrentShield + restoreAmount, CurrentMaxShield);
 
         UpdateShieldVisual();
-        Debug.Log($"[Player] Shield Recharged! Current Shield: {CurrentShield}/{CurrentMaxShield}");
     }
-
-    // --- COLLECTIBLE ARROW TRACKER ---
 
     private void HandleCollectibleTracker()
     {
@@ -545,8 +531,6 @@ public class PlayerController : MonoBehaviour
         closestCollectible = nearest;
     }
 
-    // --- FALL DEATH CHECK ---
-
     private void CheckFallDeath()
     {
         if (transform.position.y < killYThreshold)
@@ -555,8 +539,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- HEALTH & DAMAGE ---
-
     public void ResetHealthAndShield()
     {
         isDead = false;
@@ -564,6 +546,12 @@ public class PlayerController : MonoBehaviour
         CurrentShield = CurrentMaxShield;
         heartbeatTimer = 0f;
         iFrameTimer = 0f;
+
+        if (characterController != null)
+        {
+            characterController.enabled = true;
+        }
+
         RestoreSpriteAlpha();
         ResetShieldRechargeTimer();
         UpdateShieldVisual();
@@ -576,10 +564,8 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        // Block all incoming damage while invincible
         if (isDead || damage <= 0f || IsInvincible) return;
 
-        // Activate i-frames timer
         iFrameTimer = iFrameDuration;
 
         if (spriteFlasher != null)
@@ -650,13 +636,24 @@ public class PlayerController : MonoBehaviour
             heartbeatAudioSource.Stop();
         }
 
+        StartCoroutine(DeathSequenceRoutine(0.5f));
+    }
+
+    private IEnumerator DeathSequenceRoutine(float delay)
+    {
+        if (characterController != null)
+        {
+            characterController.enabled = false;
+        }
+
+        // Wait 0.5s so the player death sound plays clearly before cutting to lore cutscene
+        yield return new WaitForSecondsRealtime(delay);
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlayerDied();
         }
     }
-
-    // --- HEARTBEAT SYSTEM ---
 
     private void HandleHeartbeatSound()
     {
@@ -680,8 +677,6 @@ public class PlayerController : MonoBehaviour
             heartbeatTimer = 0f;
         }
     }
-
-    // --- VISUAL & AUDIO FEEDBACK HELPERS ---
 
     private void TriggerDamageFlash(Color flashColor)
     {
@@ -717,8 +712,6 @@ public class PlayerController : MonoBehaviour
         if (clip == null) return;
         AudioSource.PlayClipAtPoint(clip, cameraTransform != null ? cameraTransform.position : transform.position, sfxVolume);
     }
-
-    // --- MOVEMENT & PHYSICS ---
 
     private void CheckGround()
     {
@@ -771,7 +764,6 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDirection = cameraForward * vertical + cameraRight * horizontal;
         moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
 
-        // Combine horizontal movement and vertical velocity into a single Move call
         Vector3 combinedMotion = (moveDirection * CurrentMoveSpeed) + velocity;
         characterController.Move(combinedMotion * Time.deltaTime);
 
@@ -807,8 +799,6 @@ public class PlayerController : MonoBehaviour
             velocity.y += gravity * Time.deltaTime;
         }
     }
-
-    // --- 8-WAY SPRITE ANIMATION CONTROLLER ---
 
     private void HandleSpriteAnimation(Vector3 inputVector)
     {

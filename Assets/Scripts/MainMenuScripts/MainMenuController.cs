@@ -13,11 +13,9 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
-        // Ensure standard mouse cursor visibility in menu
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Ensure proper starting panel state
         if (mainButtonsPanel != null) mainButtonsPanel.SetActive(true);
         if (shopPanel != null) shopPanel.SetActive(false);
     }
@@ -27,7 +25,21 @@ public class MainMenuController : MonoBehaviour
     public void OnClickStart()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(firstLevelSceneName);
+
+        // Check if a LoreDialogueManager exists in scene to handle intro dialogue
+        if (LoreDialogueManager.Instance != null)
+        {
+            if (mainButtonsPanel != null) mainButtonsPanel.SetActive(false);
+
+            LoreDialogueManager.Instance.StartIntroDialogue(() =>
+            {
+                SceneManager.LoadScene(firstLevelSceneName);
+            });
+        }
+        else
+        {
+            SceneManager.LoadScene(firstLevelSceneName);
+        }
     }
 
     public void OnClickOpenShop()
@@ -37,7 +49,6 @@ public class MainMenuController : MonoBehaviour
         {
             shopPanel.SetActive(true);
 
-            // Refresh shop UI coin & level values
             if (shopPanel.TryGetComponent<MainMenuShop>(out var shopScript))
             {
                 shopScript.UpdateShopUI();

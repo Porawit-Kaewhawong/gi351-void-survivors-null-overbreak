@@ -378,6 +378,16 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        // Pause BGM and halt manager updates while dialogue/lore is active
+        if (LoreDialogueManager.Instance != null && LoreDialogueManager.Instance.IsDialogueActive)
+        {
+            if (musicAudioSource != null && musicAudioSource.isPlaying)
+            {
+                musicAudioSource.Pause();
+            }
+            return;
+        }
+
         UpdateCollapseBGM();
         UpdateAtmosphere();
 
@@ -457,6 +467,13 @@ public class GameManager : MonoBehaviour
     public void PlayMusic(AudioClip musicClip)
     {
         if (musicAudioSource == null) return;
+
+        // Block music playback if dialogue is currently running
+        if (LoreDialogueManager.Instance != null && LoreDialogueManager.Instance.IsDialogueActive)
+        {
+            musicAudioSource.clip = musicClip;
+            return;
+        }
 
         if (musicClip == null)
         {
@@ -1357,13 +1374,23 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDied()
     {
-        if (RunSummaryUI.Instance != null)
+        // If LoreDialogueManager is present, display death quote before opening the summary UI
+        if (LoreDialogueManager.Instance != null)
         {
-            RunSummaryUI.Instance.ShowDeathSummary();
+            LoreDialogueManager.Instance.StartDeathDialogue(() =>
+            {
+                if (RunSummaryUI.Instance != null)
+                {
+                    RunSummaryUI.Instance.ShowDeathSummary();
+                }
+            });
         }
         else
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            if (RunSummaryUI.Instance != null)
+            {
+                RunSummaryUI.Instance.ShowDeathSummary();
+            }
         }
     }
 
