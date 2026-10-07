@@ -162,7 +162,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 0.6
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3703739660954809698
 MonoBehaviour:
@@ -177,6 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WatcherFogItem
   customParticlePrefab: {fileID: 0}
+  fogParticleMaterial: {fileID: 2100000, guid: d8c0f651f1fe88d45b1e5992a1d01d6e, type: 2}
   fogColor: {r: 1, g: 1, b: 1, a: 0.57254905}
   particleEmissionRate: 100
   fogRadius: 20

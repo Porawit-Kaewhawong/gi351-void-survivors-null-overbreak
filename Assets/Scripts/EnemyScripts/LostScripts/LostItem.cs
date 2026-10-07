@@ -7,6 +7,9 @@ public class WatcherFogItem : MonoBehaviour
     [Tooltip("Optional custom Fog Particle Prefab. If left empty, a dynamic fog effect is generated procedurally.")]
     [SerializeField] private GameObject customParticlePrefab;
 
+    [Tooltip("Assign a Particle Material here to prevent Shader Stripping in builds.")]
+    [SerializeField] private Material fogParticleMaterial;
+
     [Tooltip("Color of the fog mist particles.")]
     [SerializeField] private Color fogColor = new Color(0.8f, 0.85f, 0.9f, 0.25f);
 
@@ -19,9 +22,15 @@ public class WatcherFogItem : MonoBehaviour
     private Action onCollectedCallback;
     private ParticleSystem proceduralParticleSystem;
 
+    private void Awake()
+    {
+        EnsurePhysicsSetup();
+    }
+
     public void Initialize(Action onCollected)
     {
         onCollectedCallback = onCollected;
+        EnsurePhysicsSetup();
 
         if (customParticlePrefab != null)
         {
@@ -33,20 +42,48 @@ public class WatcherFogItem : MonoBehaviour
         }
     }
 
+    private void EnsurePhysicsSetup()
+    {
+        // 1. Ensure 3D Collider exists and is set as trigger
+        Collider col3D = GetComponent<Collider>();
+        if (col3D != null)
+        {
+            col3D.isTrigger = true;
+        }
+
+        // 2. Ensure kinematic Rigidbody exists so OnTriggerEnter fires with CharacterController
+        Rigidbody rb3D = GetComponent<Rigidbody>();
+        if (rb3D == null)
+        {
+            rb3D = gameObject.AddComponent<Rigidbody>();
+        }
+        rb3D.isKinematic = true;
+        rb3D.useGravity = false;
+
+        // 3. Support 2D colliders/rigidbodies if applicable
+        Collider2D col2D = GetComponent<Collider2D>();
+        if (col2D != null)
+        {
+            col2D.isTrigger = true;
+            Rigidbody2D rb2D = GetComponent<Rigidbody2D>();
+            if (rb2D == null)
+            {
+                rb2D = gameObject.AddComponent<Rigidbody2D>();
+            }
+            rb2D.bodyType = RigidbodyType2D.Kinematic;
+        }
+    }
+
     private void CreateDynamicFogEffect()
     {
         GameObject fogObj = new GameObject("FogMistEffect");
         fogObj.transform.SetParent(transform, false);
 
         proceduralParticleSystem = fogObj.AddComponent<ParticleSystem>();
-
-        // Ensure system is explicitly stopped before modifying main module duration/settings
         proceduralParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
-        // Disable default Renderer emission until configured
         ParticleSystemRenderer psRenderer = fogObj.GetComponent<ParticleSystemRenderer>();
 
-        // Main module settings
         var main = proceduralParticleSystem.main;
         main.duration = 5f;
         main.loop = true;
@@ -58,16 +95,13 @@ public class WatcherFogItem : MonoBehaviour
         main.simulationSpace = ParticleSystemSimulationSpace.World;
         main.maxParticles = 100;
 
-        // Emission module
         var emission = proceduralParticleSystem.emission;
         emission.rateOverTime = particleEmissionRate;
 
-        // Shape module (Sphere volume around item)
         var shape = proceduralParticleSystem.shape;
         shape.shapeType = ParticleSystemShapeType.Sphere;
         shape.radius = fogRadius;
 
-        // Color over lifetime (Fade in and fade out gracefully)
         var colorOverLifetime = proceduralParticleSystem.colorOverLifetime;
         colorOverLifetime.enabled = true;
 
@@ -78,7 +112,6 @@ public class WatcherFogItem : MonoBehaviour
         );
         colorOverLifetime.color = gradient;
 
-        // Size over lifetime (Slightly expand as mist drifts)
         var sizeOverLifetime = proceduralParticleSystem.sizeOverLifetime;
         sizeOverLifetime.enabled = true;
         AnimationCurve curve = new AnimationCurve();
@@ -86,12 +119,17 @@ public class WatcherFogItem : MonoBehaviour
         curve.AddKey(1f, 1.2f);
         sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, curve);
 
-        // Assign default unlit particle material
-        Material particleMat = new Material(Shader.Find("Particles/Standard Unlit"));
+        // Prioritize assigned Inspector material to avoid build shader stripping
+        Material particleMat = fogParticleMaterial;
+        if (particleMat == null)
+        {
+            Shader particleShader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (particleShader == null) particleShader = Shader.Find("Particles/Standard Unlit");
+            if (particleShader != null) particleMat = new Material(particleShader);
+        }
+
         if (particleMat != null && psRenderer != null)
         {
-            // Enable soft blending modes if available
-            particleMat.SetFloat("_Mode", 2); // Fade mode
             psRenderer.material = particleMat;
         }
 
@@ -103,28 +141,17 @@ public class WatcherFogItem : MonoBehaviour
         CheckCollection(other.gameObject);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        CheckCollection(other.gameObject);
-    }
-
     private void CheckCollection(GameObject target)
     {
-        // Check if collision matches Player tag or PlayerController component
         if (target.CompareTag("Player") || target.GetComponentInParent<PlayerController>() != null)
         {
-            // Disable item colliders immediately to prevent duplicate triggers
             Collider col3D = GetComponent<Collider>();
             if (col3D != null) col3D.enabled = false;
 
             Collider2D col2D = GetComponent<Collider2D>();
             if (col2D != null) col2D.enabled = false;
 
-            // Trigger pickup callback
             onCollectedCallback?.Invoke();
-
-            // Note: Immediate Destroy(gameObject) is omitted here so that TheWatcherEnemy
-            // can manage fog particle fade-out over successDisplayDuration.
         }
     }
 }
